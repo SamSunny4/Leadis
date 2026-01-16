@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import { 
   Brain, 
   Sparkles, 
@@ -192,14 +193,16 @@ const HeroSection = () => {
           </p>
           
           <div style={styles.heroCTA}>
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              style={styles.primaryButton}
-            >
-              <PlayCircle size={22} />
-              Start Screening
-            </motion.button>
+            <Link href="/screening" style={{ textDecoration: 'none' }}>
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                style={styles.primaryButton}
+              >
+                <PlayCircle size={22} />
+                Start Screening
+              </motion.button>
+            </Link>
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
@@ -502,14 +505,16 @@ const CTASection = () => {
         <p style={styles.ctaSubtitle}>
           Just 15-20 minutes of fun games, and you'll discover amazing things about how your child learns!
         </p>
-        <motion.button
-          whileHover={{ scale: 1.08, y: -3 }}
-          whileTap={{ scale: 0.95 }}
-          style={styles.ctaButton}
-        >
-          Let's Go! Start Screening
-          <ArrowRight size={22} />
-        </motion.button>
+        <Link href="/screening" style={{ textDecoration: 'none' }}>
+          <motion.button
+            whileHover={{ scale: 1.08, y: -3 }}
+            whileTap={{ scale: 0.95 }}
+            style={styles.ctaButton}
+          >
+            Let's Go! Start Screening
+            <ArrowRight size={22} />
+          </motion.button>
+        </Link>
         <p style={styles.ctaNote}>No sign-up needed • Highly accurate • Takes 15-20 mins</p>
       </motion.div>
     </section>
