@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
+import {
   ArrowLeft,
   ArrowRight,
   User,
@@ -49,21 +50,21 @@ const ML_ENCODING = {
 // Encode form data for ML processing
 const encodeFormDataForML = (formData) => {
   const encoded = { ...formData };
-  
+
   // Calculate age in months from DOB
   if (formData.dateOfBirth) {
     const birthDate = new Date(formData.dateOfBirth);
     const ageMonths = Math.floor((Date.now() - birthDate) / (1000 * 60 * 60 * 24 * 30.44));
     encoded.age_months = ageMonths;
   }
-  
+
   // Encode single-value fields
   Object.keys(ML_ENCODING).forEach(field => {
     if (formData[field] !== undefined && formData[field] !== '' && !Array.isArray(formData[field])) {
       encoded[`${field}_encoded`] = ML_ENCODING[field][formData[field]] ?? null;
     }
   });
-  
+
   // Encode medical conditions (comma-separated to binary vector)
   if (formData.medicalConditions) {
     const conditions = formData.medicalConditions.split(',').map(c => c.trim());
@@ -74,7 +75,7 @@ const encodeFormDataForML = (formData) => {
     });
     encoded.medicalConditions_encoded = vector;
   }
-  
+
   // Encode array fields to binary vectors
   ['learningSupport', 'academicDifficulties', 'familyLearningDifficulty'].forEach(field => {
     if (Array.isArray(formData[field])) {
@@ -87,11 +88,11 @@ const encodeFormDataForML = (formData) => {
       encoded[`${field}_encoded`] = vector;
     }
   });
-  
+
   // Add concern flags
   encoded.vision_concern_flag = ['concerns', 'not-tested'].includes(formData.visionStatus) ? 1 : 0;
   encoded.hearing_concern_flag = ['concerns', 'diagnosed', 'not-tested'].includes(formData.hearingStatus) ? 1 : 0;
-  
+
   return encoded;
 };
 
@@ -128,17 +129,17 @@ const defaultFormData = {
   gender: '',
   primaryLanguage: 'english',
   multilingualExposure: '',
-  
+
   // Caregiver Info
   relationship: '',
   email: '',
-  
+
   // Medical History
   birthHistory: '',
   medicalConditions: '',
   hearingStatus: '',
   visionStatus: '',
-  
+
   // Education
   educationalSetting: '',
   currentGrade: '',
@@ -146,7 +147,7 @@ const defaultFormData = {
   learningSupport: [],
   learningExperience: '',
   academicDifficulties: [],
-  
+
   // Developmental History
   ageFirstWordMonths: '',
   ageFirstSentenceMonths: '',
@@ -154,12 +155,13 @@ const defaultFormData = {
   historyMotorDelay: '',
   familyLearningDifficulty: [],
   familyADHD: '',
-  
+
   // Consent
   dataConsent: false,
 };
 
 export default function ScreeningForm() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState(defaultFormData);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -212,20 +214,22 @@ export default function ScreeningForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Encode form data for ML processing
     const encodedData = encodeFormDataForML(formData);
-    
+
     // Save final form data with timestamp and ML encodings
     const submissionData = {
       ...encodedData,
       submittedAt: new Date().toISOString(),
     };
-    
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(submissionData));
     console.log('Form submitted (ML-encoded):', submissionData);
     console.log('Original form data:', formData);
-    // TODO: Navigate to assessment page
+
+    // Navigate to quiz page
+    router.push('/quiz');
   };
 
   // Clear saved form data
@@ -283,7 +287,7 @@ export default function ScreeningForm() {
               >
                 {currentStep > step.id ? <Check size={18} /> : step.icon}
               </motion.div>
-              <span 
+              <span
                 onClick={() => setCurrentStep(step.id)}
                 style={{
                   ...styles.stepLabel,
@@ -599,18 +603,18 @@ export default function ScreeningForm() {
                     { value: 'homeschooling', label: 'Homeschooling' },
                     { value: 'other', label: 'Other (specify)' },
                   ].map((option) => (
-                    <label 
-                      key={option.value} 
+                    <label
+                      key={option.value}
                       style={{
                         ...styles.radioLabel,
-                        border: formData.educationalSetting === option.value 
-                          ? `2px solid ${colors.primary}` 
+                        border: formData.educationalSetting === option.value
+                          ? `2px solid ${colors.primary}`
                           : `2px solid ${colors.primaryLight}`,
-                        boxShadow: formData.educationalSetting === option.value 
-                          ? `0 0 0 3px ${colors.primary}20, 0 0 15px ${colors.primary}30` 
+                        boxShadow: formData.educationalSetting === option.value
+                          ? `0 0 0 3px ${colors.primary}20, 0 0 15px ${colors.primary}30`
                           : 'none',
-                        backgroundColor: formData.educationalSetting === option.value 
-                          ? colors.lightBg 
+                        backgroundColor: formData.educationalSetting === option.value
+                          ? colors.lightBg
                           : colors.white,
                       }}
                     >
@@ -667,18 +671,18 @@ export default function ScreeningForm() {
                     { value: 'bilingual', label: 'Bilingual' },
                     { value: 'other', label: 'Other (specify)' },
                   ].map((option) => (
-                    <label 
-                      key={option.value} 
+                    <label
+                      key={option.value}
                       style={{
                         ...styles.radioLabel,
-                        border: formData.mediumOfInstruction === option.value 
-                          ? `2px solid ${colors.primary}` 
+                        border: formData.mediumOfInstruction === option.value
+                          ? `2px solid ${colors.primary}`
                           : `2px solid ${colors.primaryLight}`,
-                        boxShadow: formData.mediumOfInstruction === option.value 
-                          ? `0 0 0 3px ${colors.primary}20, 0 0 15px ${colors.primary}30` 
+                        boxShadow: formData.mediumOfInstruction === option.value
+                          ? `0 0 0 3px ${colors.primary}20, 0 0 15px ${colors.primary}30`
                           : 'none',
-                        backgroundColor: formData.mediumOfInstruction === option.value 
-                          ? colors.lightBg 
+                        backgroundColor: formData.mediumOfInstruction === option.value
+                          ? colors.lightBg
                           : colors.white,
                       }}
                     >
@@ -716,10 +720,10 @@ export default function ScreeningForm() {
                   ].map((option) => {
                     const isNoSupport = formData.learningSupport.includes('no-support');
                     const isDisabled = isNoSupport && option.value !== 'no-support';
-                    
+
                     return (
-                      <label 
-                        key={option.value} 
+                      <label
+                        key={option.value}
                         style={{
                           ...styles.checkboxLabel,
                           opacity: isDisabled ? 0.5 : 1,
@@ -736,7 +740,7 @@ export default function ScreeningForm() {
                             const value = e.target.value;
                             setFormData(prev => {
                               let newValues = [...prev.learningSupport];
-                              
+
                               if (value === 'no-support') {
                                 newValues = e.target.checked ? ['no-support'] : [];
                               } else {
@@ -747,7 +751,7 @@ export default function ScreeningForm() {
                                   newValues = newValues.filter(v => v !== value);
                                 }
                               }
-                              
+
                               return { ...prev, learningSupport: newValues };
                             });
                           }}
@@ -772,18 +776,18 @@ export default function ScreeningForm() {
                     { value: 'highly-variable', label: 'Highly variable (sometimes good, sometimes difficult)' },
                     { value: 'not-sure', label: 'Not sure' },
                   ].map((option) => (
-                    <label 
-                      key={option.value} 
+                    <label
+                      key={option.value}
                       style={{
                         ...styles.radioLabel,
-                        border: formData.learningExperience === option.value 
-                          ? `2px solid ${colors.primary}` 
+                        border: formData.learningExperience === option.value
+                          ? `2px solid ${colors.primary}`
                           : `2px solid ${colors.primaryLight}`,
-                        boxShadow: formData.learningExperience === option.value 
-                          ? `0 0 0 3px ${colors.primary}20, 0 0 15px ${colors.primary}30` 
+                        boxShadow: formData.learningExperience === option.value
+                          ? `0 0 0 3px ${colors.primary}20, 0 0 15px ${colors.primary}30`
                           : 'none',
-                        backgroundColor: formData.learningExperience === option.value 
-                          ? colors.lightBg 
+                        backgroundColor: formData.learningExperience === option.value
+                          ? colors.lightBg
                           : colors.white,
                       }}
                     >
@@ -822,10 +826,10 @@ export default function ScreeningForm() {
                   ].map((option) => {
                     const isNone = formData.academicDifficulties.includes('none');
                     const isDisabled = isNone && option.value !== 'none';
-                    
+
                     return (
-                      <label 
-                        key={option.value} 
+                      <label
+                        key={option.value}
                         style={{
                           ...styles.checkboxLabel,
                           opacity: isDisabled ? 0.5 : 1,
@@ -842,7 +846,7 @@ export default function ScreeningForm() {
                             const value = e.target.value;
                             setFormData(prev => {
                               let newValues = [...prev.academicDifficulties];
-                              
+
                               if (value === 'none') {
                                 newValues = e.target.checked ? ['none'] : [];
                               } else {
@@ -853,7 +857,7 @@ export default function ScreeningForm() {
                                   newValues = newValues.filter(v => v !== value);
                                 }
                               }
-                              
+
                               return { ...prev, academicDifficulties: newValues };
                             });
                           }}
@@ -981,10 +985,10 @@ export default function ScreeningForm() {
                   ].map((option) => {
                     const isNoHistory = formData.familyLearningDifficulty.includes('no-history');
                     const isDisabled = isNoHistory && option.value !== 'no-history';
-                    
+
                     return (
-                      <label 
-                        key={option.value} 
+                      <label
+                        key={option.value}
                         style={{
                           ...styles.checkboxLabel,
                           opacity: isDisabled ? 0.5 : 1,
@@ -1001,7 +1005,7 @@ export default function ScreeningForm() {
                             const value = e.target.value;
                             setFormData(prev => {
                               let newValues = [...prev.familyLearningDifficulty];
-                              
+
                               if (value === 'no-history') {
                                 // If selecting "no history", clear all others
                                 newValues = e.target.checked ? ['no-history'] : [];
@@ -1014,7 +1018,7 @@ export default function ScreeningForm() {
                                   newValues = newValues.filter(v => v !== value);
                                 }
                               }
-                              
+
                               return { ...prev, familyLearningDifficulty: newValues };
                             });
                           }}
@@ -1038,18 +1042,18 @@ export default function ScreeningForm() {
                     { value: 'siblings', label: 'Yes – sibling(s)' },
                     { value: 'unsure', label: 'Unsure / Prefer not to say' },
                   ].map((option) => (
-                    <label 
-                      key={option.value} 
+                    <label
+                      key={option.value}
                       style={{
                         ...styles.radioLabel,
-                        border: formData.familyADHD === option.value 
-                          ? `2px solid ${colors.primary}` 
+                        border: formData.familyADHD === option.value
+                          ? `2px solid ${colors.primary}`
                           : `2px solid ${colors.primaryLight}`,
-                        boxShadow: formData.familyADHD === option.value 
-                          ? `0 0 0 3px ${colors.primary}20, 0 0 15px ${colors.primary}30` 
+                        boxShadow: formData.familyADHD === option.value
+                          ? `0 0 0 3px ${colors.primary}20, 0 0 15px ${colors.primary}30`
                           : 'none',
-                        backgroundColor: formData.familyADHD === option.value 
-                          ? colors.lightBg 
+                        backgroundColor: formData.familyADHD === option.value
+                          ? colors.lightBg
                           : colors.white,
                       }}
                     >
@@ -1120,7 +1124,7 @@ export default function ScreeningForm() {
               <div style={styles.summaryBox}>
                 <h4 style={styles.summaryTitle}>Ready to Start?</h4>
                 <p style={styles.summaryText}>
-                  After submitting this form, your child will begin the fun, interactive screening activities. 
+                  After submitting this form, your child will begin the fun, interactive screening activities.
                   The assessment takes approximately 15-20 minutes to complete.
                 </p>
               </div>
