@@ -1,7 +1,7 @@
 [
     {
         "id": 1,
-        "type": "audio",
+        "type": "text",
         "question": "If you have 3 packs of gum and each pack has 8 pieces, how many pieces of gum do you have in total?",
         "options": [
             "11",
@@ -25,7 +25,26 @@
     },
     {
         "id": 3,
-        "type": "visual",
+        "type": "minigame",
+        "gameType": "sequence",
+        "question": "Memory Challenge: Watch the apples flash and repeat the pattern!",
+        "config": {
+            "instructions": "Watch the sequence of apples and click the tiles in the same order. How many levels can you beat?"
+        }
+    },
+    {
+        "id": 4,
+        "type": "minigame",
+        "gameType": "find-character",
+        "question": "Attention Test: Find the Fox!",
+        "config": {
+            "targetScore": 5,
+            "instructions": "Find and click on the orange Fox hidden among the other animals. It will move each time you find it!"
+        }
+    },
+    {
+        "id": 5,
+        "type": "text",
         "question": "Which shape has 5 sides?",
         "options": [
             "Square",
@@ -36,9 +55,8 @@
         "correctAnswer": "Pentagon"
     },
     {
-        "id": 4,
-        "type": "minigame",
-		  "Minigame-type": "puzzle",
+        "id": 6,
+        "type": "text",
         "question": "If a movie starts at 2:30 PM and lasts for 1 hour and 45 minutes, what time does it end?",
         "options": [
             "4:00 PM",
@@ -49,7 +67,7 @@
         "correctAnswer": "4:15 PM"
     },
     {
-        "id": 5,
+        "id": 7,
         "type": "text",
         "question": "Which fraction is larger: 1/2 or 1/4?",
         "options": [
@@ -61,7 +79,7 @@
         "correctAnswer": "1/2"
     },
     {
-        "id": 6,
+        "id": 8,
         "type": "text",
         "question": "Tom is taller than Jerry. Jerry is taller than Spike. Who is the shortest?",
         "options": [
@@ -73,7 +91,7 @@
         "correctAnswer": "Spike"
     },
     {
-        "id": 7,
+        "id": 9,
         "type": "text",
         "question": "What is 150 divided by 3?",
         "options": [
@@ -85,7 +103,7 @@
         "correctAnswer": "50"
     },
     {
-        "id": 8,
+        "id": 10,
         "type": "text",
         "question": "How many minutes are there in 3 hours?",
         "options": [
@@ -97,7 +115,7 @@
         "correctAnswer": "180"
     },
     {
-        "id": 9,
+        "id": 11,
         "type": "text",
         "question": "If yesterday was Tuesday, what day will it be in 3 days?",
         "options": [
@@ -109,7 +127,7 @@
         "correctAnswer": "Saturday"
     },
     {
-        "id": 10,
+        "id": 12,
         "type": "text",
         "question": "Select the odd one out.",
         "options": [
