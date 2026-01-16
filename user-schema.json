@@ -191,12 +191,6 @@
               "maximum": 600,
               "default": null
             },
-            "attention_dropoff_slope": {
-              "type": "number",
-              "minimum": -1.0,
-              "maximum": 1.0,
-              "default": null
-            },
             "attention_span_average": {
               "type": "number",
               "minimum": 0,
@@ -219,12 +213,6 @@
               "minimum": 0,
               "maximum": 20,
               "default": null
-            },
-            "sequence_order_error_rate": {
-              "type": "number",
-              "minimum": 0.0,
-              "maximum": 1.0,
-              "default": null
             }
           }
         },
@@ -236,18 +224,32 @@
               "minimum": 0,
               "maximum": 30000,
               "default": null
-            },
-            "left_right_confusion_rate": {
+            }
+          }
+        },
+        "motorCoordination": {
+          "type": "object",
+          "properties": {
+            "hand_laterality_accuracy": {
               "type": "number",
               "minimum": 0.0,
               "maximum": 1.0,
-              "default": null
+              "default": null,
+              "description": "Accuracy in identifying and using correct hand (left vs right)"
             },
-            "pref_visual": {
+            "finger_counting_accuracy": {
               "type": "number",
               "minimum": 0.0,
               "maximum": 1.0,
-              "default": null
+              "default": null,
+              "description": "Accuracy in showing specific number of fingers on command"
+            },
+            "hand_position_accuracy": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null,
+              "description": "Accuracy in positioning hands in specified locations"
             }
           }
         },
@@ -267,52 +269,6 @@
               "default": 0
             },
             "pref_auditory": {
-              "type": "number",
-              "minimum": 0.0,
-              "maximum": 1.0,
-              "default": null
-            }
-          }
-        },
-        "speechMetrics": {
-          "type": "object",
-          "properties": {
-            "speech_rate_wpm": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 200,
-              "default": null
-            },
-            "hesitation_frequency": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 50,
-              "default": 0
-            }
-          }
-        },
-        "readingMetrics": {
-          "type": "object",
-          "properties": {
-            "reading_speed_wpm": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 300,
-              "default": null
-            },
-            "reading_accuracy": {
-              "type": "number",
-              "minimum": 0.0,
-              "maximum": 1.0,
-              "default": null
-            },
-            "letter_reversal_rate": {
-              "type": "number",
-              "minimum": 0.0,
-              "maximum": 1.0,
-              "default": null
-            },
-            "audio_text_mismatch_rate": {
               "type": "number",
               "minimum": 0.0,
               "maximum": 1.0,
@@ -344,12 +300,6 @@
           "default": null
         },
         "risk_working_memory": {
-          "type": "number",
-          "minimum": 0.0,
-          "maximum": 1.0,
-          "default": null
-        },
-        "risk_expressive_language": {
           "type": "number",
           "minimum": 0.0,
           "maximum": 1.0,
