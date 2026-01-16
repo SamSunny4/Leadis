@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { HandLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
+import { HandLandmarker, FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 
 /**
  * MediaPipe Hand Tracking Component
@@ -17,15 +17,20 @@ const MediaPipeHandTracking = ({
   task = null,
   isActive = false,
   showVideo = true,
-  detectGestures = true
+  detectGestures = true,
+  detectFingers = false,
+  detectPosition = false
 }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [handLandmarker, setHandLandmarker] = useState(null);
+  const [faceLandmarker, setFaceLandmarker] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState(null);
   const [handedness, setHandedness] = useState(null);
   const [currentGesture, setCurrentGesture] = useState(null);
+  const [fingerCount, setFingerCount] = useState(null);
+  const [handPosition, setHandPosition] = useState(null);
   const [motorMetrics, setMotorMetrics] = useState({
     stability: 0,
     speed: 0,
@@ -34,6 +39,21 @@ const MediaPipeHandTracking = ({
   });
   const animationFrameId = useRef(null);
   const handHistory = useRef([]);
+
+  // Use refs to keep track of latest props inside the animation loop
+  const onHandDetectedRef = useRef(onHandDetected);
+  const taskRef = useRef(task);
+  const detectGesturesRef = useRef(detectGestures);
+  const detectFingersRef = useRef(detectFingers);
+  const detectPositionRef = useRef(detectPosition);
+
+  useEffect(() => {
+    onHandDetectedRef.current = onHandDetected;
+    taskRef.current = task;
+    detectGesturesRef.current = detectGestures;
+    detectFingersRef.current = detectFingers;
+    detectPositionRef.current = detectPosition;
+  }, [onHandDetected, task, detectGestures, detectFingers, detectPosition]);
 
   // Initialize MediaPipe Hand Landmarker
   useEffect(() => {
@@ -55,7 +75,21 @@ const MediaPipeHandTracking = ({
           minTrackingConfidence: 0.5
         });
 
+        // Optional but useful for position tasks: detect face to define "above head" / "in front of face"
+        const face = await FaceLandmarker.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+            delegate: "GPU"
+          },
+          runningMode: "VIDEO",
+          numFaces: 1,
+          minFaceDetectionConfidence: 0.5,
+          minFacePresenceConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
+
         setHandLandmarker(landmarker);
+        setFaceLandmarker(face);
         setIsInitialized(true);
       } catch (err) {
         console.error("Error initializing hand landmarker:", err);
@@ -68,6 +102,9 @@ const MediaPipeHandTracking = ({
     return () => {
       if (handLandmarker) {
         handLandmarker.close();
+      }
+      if (faceLandmarker) {
+        faceLandmarker.close();
       }
     };
   }, []);
@@ -125,30 +162,66 @@ const MediaPipeHandTracking = ({
     const startTimeMs = performance.now();
     const results = handLandmarker.detectForVideo(video, startTimeMs);
 
+    let faceBox = null;
+    if (detectPositionRef.current && faceLandmarker) {
+      const faceResults = faceLandmarker.detectForVideo(video, startTimeMs);
+      const faceLandmarks = faceResults?.faceLandmarks?.[0];
+      if (faceLandmarks && faceLandmarks.length > 0) {
+        let minX = 1, minY = 1, maxX = 0, maxY = 0;
+        for (const p of faceLandmarks) {
+          if (p.x < minX) minX = p.x;
+          if (p.y < minY) minY = p.y;
+          if (p.x > maxX) maxX = p.x;
+          if (p.y > maxY) maxY = p.y;
+        }
+        faceBox = { minX, minY, maxX, maxY };
+      }
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (results.landmarks && results.landmarks.length > 0) {
       results.landmarks.forEach((landmarks, index) => {
-        const handType = results.handedness[index]?.[0]?.categoryName || 'Unknown';
+        const handTypeRaw = results.handedness[index]?.[0]?.categoryName || 'Unknown';
+        const handType = handTypeRaw.toLowerCase();
+        const confidence = results.handedness[index]?.[0]?.score || 0;
         setHandedness(handType);
 
+        // Count fingers if requested
+        let fingerCount = null;
+        if (detectFingersRef.current) {
+          fingerCount = countFingers(landmarks, handType);
+          setFingerCount(fingerCount);
+        }
+
+        // Detect hand position if requested
+        let position = null;
+        if (detectPositionRef.current) {
+          position = detectHandPosition(landmarks, faceBox);
+          setHandPosition(position);
+        }
+
         // Analyze motor skills and gestures
-        if (detectGestures) {
-          const gesture = recognizeGesture(landmarks);
+        let gesture = null;
+        if (detectGesturesRef.current) {
+          gesture = recognizeGesture(landmarks);
           setCurrentGesture(gesture);
         }
 
         const metrics = analyzeMotorSkills(landmarks);
         setMotorMetrics(metrics);
 
-        if (onHandDetected) {
-          onHandDetected({
+        if (onHandDetectedRef.current) {
+          onHandDetectedRef.current({
             timestamp: Date.now(),
             landmarks,
             handedness: handType,
-            gesture: currentGesture,
+            gesture,
+            fingerCount,
+            position,
             motorMetrics: metrics,
-            task
+            confidence,
+            task: taskRef.current
           });
         }
 
@@ -209,6 +282,76 @@ const MediaPipeHandTracking = ({
     }
 
     return 'unknown';
+  };
+
+  // Count extended fingers
+  const countFingers = (landmarks, handType) => {
+    const thumbTip = landmarks[4];
+    const thumbIp = landmarks[3];
+    const indexTip = landmarks[8];
+    const indexPip = landmarks[6];
+    const middleTip = landmarks[12];
+    const middlePip = landmarks[10];
+    const ringTip = landmarks[16];
+    const ringPip = landmarks[14];
+    const pinkyTip = landmarks[20];
+    const pinkyPip = landmarks[18];
+
+    // Index/Middle/Ring/Pinky: tip above PIP joint means extended
+    const indexExtended = indexTip.y < indexPip.y;
+    const middleExtended = middleTip.y < middlePip.y;
+    const ringExtended = ringTip.y < ringPip.y;
+    const pinkyExtended = pinkyTip.y < pinkyPip.y;
+
+    // Thumb depends on handedness (x-axis extension)
+    let thumbExtended = false;
+    if (handType === 'right') {
+      thumbExtended = thumbTip.x > thumbIp.x;
+    } else if (handType === 'left') {
+      thumbExtended = thumbTip.x < thumbIp.x;
+    } else {
+      // Fallback if handedness unknown
+      thumbExtended = Math.abs(thumbTip.x - landmarks[0].x) > Math.abs(thumbIp.x - landmarks[0].x);
+    }
+
+    let count = 0;
+    if (thumbExtended) count++;
+    if (indexExtended) count++;
+    if (middleExtended) count++;
+    if (ringExtended) count++;
+    if (pinkyExtended) count++;
+
+    return count;
+  };
+
+  // Detect hand position (above head, in front, etc.)
+  const detectHandPosition = (landmarks, faceBox) => {
+    const wrist = landmarks[0];
+
+    // Prefer face-relative rules when face is detected
+    if (faceBox) {
+      const margin = 0.03;
+      const withinFaceX = wrist.x >= (faceBox.minX - margin) && wrist.x <= (faceBox.maxX + margin);
+      const withinFaceY = wrist.y >= (faceBox.minY - margin) && wrist.y <= (faceBox.maxY + margin);
+
+      if (wrist.y < (faceBox.minY - margin)) {
+        return 'above-head';
+      }
+      if (withinFaceX && withinFaceY) {
+        return 'in-front';
+      }
+
+      return 'below';
+    }
+
+    // Fallback to simple screen-relative thresholds
+    if (wrist.y < 0.28) {
+      return 'above-head';
+    }
+    if (wrist.y >= 0.28 && wrist.y < 0.7) {
+      return 'in-front';
+    }
+    return 'below';
   };
 
   // Analyze motor skills from hand movements
@@ -341,7 +484,19 @@ const MediaPipeHandTracking = ({
             <span style={styles.infoValue}>{handedness}</span>
           </div>
         )}
-        {currentGesture && (
+        {detectFingers && fingerCount !== null && (
+          <div style={styles.infoRow}>
+            <span style={styles.infoLabel}>Fingers:</span>
+            <span style={styles.infoValue}>{fingerCount}</span>
+          </div>
+        )}
+        {detectPosition && handPosition && (
+          <div style={styles.infoRow}>
+            <span style={styles.infoLabel}>Position:</span>
+            <span style={styles.infoValue}>{handPosition.replace('-', ' ')}</span>
+          </div>
+        )}
+        {currentGesture && !detectFingers && !detectPosition && (
           <div style={styles.infoRow}>
             <span style={styles.infoLabel}>Gesture:</span>
             <span style={styles.infoValue}>{currentGesture.replace('_', ' ')}</span>
