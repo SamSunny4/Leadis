@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Clock, CheckCircle, Star, Loader2, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { Clock, CheckCircle, Star, Loader2, RefreshCw, Volume2, VolumeX } from 'lucide-react';
 import Link from 'next/link';
 import { 
     generatePersonalizedQuestions, 
@@ -128,6 +128,64 @@ export default function QuizPage() {
     const [userData, setUserData] = useState(null);
     const [performance, setPerformance] = useState(null);
     const [isGeneratingFollowUp, setIsGeneratingFollowUp] = useState(false);
+    
+    // Background music refs
+    const audioRef = useRef(null);
+    const [currentTrack, setCurrentTrack] = useState(0);
+    const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+    const musicTracks = ['/assets/Music/1.mp3', '/assets/Music/2.mp3', '/assets/Music/3.mp3'];
+
+    // Initialize background music
+    useEffect(() => {
+        audioRef.current = new Audio(musicTracks[0]);
+        audioRef.current.volume = 0.3;
+        audioRef.current.loop = false;
+        
+        audioRef.current.addEventListener('ended', () => {
+            // Play next track when current ends
+            setCurrentTrack(prev => (prev + 1) % musicTracks.length);
+        });
+        
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, []);
+    
+    // Handle track changes
+    useEffect(() => {
+        if (audioRef.current && !isLoading) {
+            const wasPlaying = !audioRef.current.paused;
+            audioRef.current.src = musicTracks[currentTrack];
+            audioRef.current.volume = 0.3;
+            
+            if (wasPlaying) {
+                audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+            }
+        }
+    }, [currentTrack]);
+    
+    // Start music after loading
+    useEffect(() => {
+        if (!isLoading && questions.length > 0 && audioRef.current && !isMusicPlaying) {
+            audioRef.current.play().then(() => {
+                setIsMusicPlaying(true);
+            }).catch(e => {
+                console.log('Audio autoplay prevented. User interaction needed.');
+            });
+        }
+    }, [isLoading, questions]);
+    
+    // Stop music when quiz completes
+    useEffect(() => {
+        if (isCompleted && audioRef.current) {
+            audioRef.current.pause();
+            setIsMusicPlaying(false);
+        }
+    }, [isCompleted]);
 
     // Load user data and generate personalized questions on mount
     useEffect(() => {
@@ -180,6 +238,21 @@ export default function QuizPage() {
     const currentQuestion = questions[currentQuestionIndex];
     const totalQuestions = questions.length;
 
+    // Pause music during APD tests
+    useEffect(() => {
+        const isAPDTest = currentQuestion?.type === 'apd-test';
+        
+        if (audioRef.current) {
+            if (isAPDTest && !audioRef.current.paused) {
+                audioRef.current.pause();
+                setIsMusicPlaying(false);
+            } else if (!isAPDTest && audioRef.current.paused && !isCompleted) {
+                audioRef.current.play().catch(e => console.log('Audio resume failed:', e));
+                setIsMusicPlaying(true);
+            }
+        }
+    }, [currentQuestion, isCompleted]);
+
     // Timer logic - count UP (only when loaded and not completed)
     useEffect(() => {
         if (!isCompleted && !isLoading && questions.length > 0) {
@@ -194,6 +267,22 @@ export default function QuizPage() {
         const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${minutes < 10 ? '0' : ''}${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+    };
+
+    const toggleMute = () => {
+        if (audioRef.current) {
+            if (isMuted) {
+                // Unmute
+                audioRef.current.volume = 0.3;
+                if (!currentQuestion || currentQuestion.type !== 'apd-test') {
+                    audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+                }
+            } else {
+                // Mute
+                audioRef.current.pause();
+            }
+            setIsMuted(!isMuted);
+        }
     };
 
     const handleOptionSelect = async (option) => {
@@ -424,11 +513,33 @@ export default function QuizPage() {
                     <div style={quizStyles.logoIcon}><img src="/logo.svg" alt="Leadis" style={{ width: '100%', height: '100%' }} /></div>
                     <span style={quizStyles.logoText}>Leadis</span>
                 </div>
-                <div style={quizStyles.timerContainer}>
-                    <Clock size={20} color="#6366f1" />
-                    <span style={quizStyles.timerText}>
-                        {formatTime(elapsedTime)}
-                    </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <button
+                        onClick={toggleMute}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '50%',
+                            border: 'none',
+                            backgroundColor: isMuted ? '#fef3c7' : '#e0e7ff',
+                            color: isMuted ? '#f59e0b' : '#6366f1',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                        }}
+                        title={isMuted ? 'Unmute music' : 'Mute music'}
+                    >
+                        {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
+                    </button>
+                    <div style={quizStyles.timerContainer}>
+                        <Clock size={20} color="#6366f1" />
+                        <span style={quizStyles.timerText}>
+                            {formatTime(elapsedTime)}
+                        </span>
+                    </div>
                 </div>
             </div>
 
