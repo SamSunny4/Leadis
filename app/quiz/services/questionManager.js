@@ -322,6 +322,7 @@ CRITICAL RULES:
 4. correctAnswer MUST exactly match one option
 5. Mix "text" and "visual" types
 6. Generate COMPLETELY NEW questions each time (seed: ${randomSeed})
+7. DO NOT use emojis in questions or answers.
 
 Return ONLY the JSON array, no other text.`;
 
@@ -415,6 +416,7 @@ export async function getEasierQuestion(category, currentDifficulty) {
     const prompt = `Generate 1 ${newDifficulty} difficulty question for a ${age}-year-old child.
 Category: ${category}
 This is a follow-up question after the child got a previous question wrong.
+CRITICAL: DO NOT use emojis in the question or options.
 
 Return ONLY valid JSON:
 {

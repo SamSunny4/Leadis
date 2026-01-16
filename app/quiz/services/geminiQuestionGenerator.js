@@ -77,6 +77,7 @@ CRITICAL RULES:
 - Mix difficulty levels
 - Make questions engaging and non-threatening
 - Focus categories: ${shuffledCategories.slice(0, 4).join(', ')}
+- DO NOT use emojis in questions or answers.
 
 Generate ${count} UNIQUE questions now. Return ONLY the JSON array, no other text.`;
 
