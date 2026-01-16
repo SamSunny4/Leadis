@@ -1,0 +1,176 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Leadis Screening Form Schema",
+  "description": "Complete schema aligned with ML processing requirements",
+  "type": "object",
+  "properties": {
+    "fullName": {
+      "type": "string",
+      "description": "Child's full name for personalized screening"
+    },
+    "dateOfBirth": {
+      "type": "string",
+      "format": "date",
+      "description": "Used to calculate age_months at runtime"
+    },
+    "gender": {
+      "type": "string",
+      "enum": ["male", "female", "other", "prefer-not-to-say"],
+      "ml_encoding": "0=male, 1=female, 2=other, 3=prefer-not-to-say"
+    },
+    "primaryLanguage": {
+      "type": "string",
+      "enum": ["english"],
+      "ml_encoding": "0=english"
+    },
+    "multilingualExposure": {
+      "type": "string",
+      "enum": ["0", "1", "2", "3", "4"],
+      "description": "0=Monolingual, 1=Minimal, 2=Moderate, 3=High, 4=Native bilingual"
+    },
+    "relationship": {
+      "type": "string",
+      "enum": ["mother", "father", "grandparent", "guardian", "other"]
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Contact email for results"
+    },
+    "birthHistory": {
+      "type": "string",
+      "enum": ["full-term", "preterm", "nicu", "complications", "unknown"],
+      "ml_encoding": "0=full-term, 1=preterm, 2=nicu, 3=complications, 4=unknown"
+    },
+    "medicalConditions": {
+      "type": "string",
+      "description": "Comma-separated medical conditions",
+      "possibleValues": [
+        "Autism Spectrum Disorder (ASD)", "ADHD", "Dyslexia", "Speech delay",
+        "Motor coordination issues", "Sensory processing disorder",
+        "Developmental delay", "Anxiety", "Other diagnosed condition", "None"
+      ]
+    },
+    "hearingStatus": {
+      "type": "string",
+      "enum": ["normal", "tested-normal", "concerns", "diagnosed", "not-tested"],
+      "ml_encoding": "0=normal/tested-normal, 1=concerns, 2=diagnosed, 3=not-tested"
+    },
+    "visionStatus": {
+      "type": "string",
+      "enum": ["normal", "tested-normal", "glasses", "concerns", "not-tested"],
+      "ml_encoding": "0=normal/tested-normal, 1=glasses, 2=concerns, 3=not-tested"
+    },
+    "educationalSetting": {
+      "type": "string",
+      "enum": ["not-enrolled", "daycare", "preschool-kindergarten", "school", "homeschooling", "other"],
+      "description": "Current learning environment",
+      "ml_encoding": "0=not-enrolled, 1=daycare, 2=preschool-kindergarten, 3=school, 4=homeschooling, 5=other"
+    },
+    "currentGrade": {
+      "type": "string",
+      "enum": ["not-applicable", "preschool", "kindergarten", "1", "2", "3", "4", "5", "6+"],
+      "description": "Current grade or level - shown only for preschool/school/homeschooling settings"
+    },
+    "mediumOfInstruction": {
+      "type": "string",
+      "enum": ["english", "regional", "bilingual", "other"],
+      "description": "Primary language of instruction",
+      "ml_encoding": "0=english, 1=regional, 2=bilingual, 3=other"
+    },
+    "learningSupport": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["special-education", "resource-room", "tutoring", "speech-support", "occupational-therapy", "no-support", "unsure"]
+      },
+      "description": "Educational support services currently received - if 'no-support' selected, others disabled",
+      "ml_encoding": "Binary flags for each service type"
+    },
+    "learningExperience": {
+      "type": "string",
+      "enum": ["similar", "slightly-slower", "much-slower", "highly-variable", "not-sure"],
+      "description": "How child manages learning tasks compared to peers",
+      "ml_encoding": "0=similar, 1=slightly-slower, 2=much-slower, 3=highly-variable, 4=not-sure"
+    },
+    "academicDifficulties": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["following-instructions", "reading", "writing", "math", "attention", "memory", "none", "unsure"]
+      },
+      "description": "Areas of academic difficulty - if 'none' selected, others disabled",
+      "ml_encoding": "Binary flags for each difficulty area"
+    },
+    "ageFirstWordMonths": {
+      "type": "string",
+      "enum": ["6", "9", "12", "15", "18", "24", "30", "36", "48", "0"],
+      "description": "Age in months when first word was spoken, 0=not yet/don't remember"
+    },
+    "ageFirstSentenceMonths": {
+      "type": "string",
+      "enum": ["12", "18", "24", "30", "36", "48", "60", "0"],
+      "description": "Age in months when first 2-3 word sentence, 0=not yet/don't remember"
+    },
+    "historySpeechTherapy": {
+      "type": "string",
+      "enum": ["0", "1", "2", "3"],
+      "description": "0=Never, 1=Currently receiving, 2=Completed, 3=Recommended not started"
+    },
+    "historyMotorDelay": {
+      "type": "string",
+      "enum": ["0", "1", "2", "3", "4"],
+      "description": "0=No concerns, 1=Mild delay, 2=Moderate delay, 3=Significant delay, 4=Currently in therapy"
+    },
+    "familyLearningDifficulty": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["no-history", "reading", "writing", "math", "general", "multiple", "unsure"]
+      },
+      "description": "Multiple selection checkboxes - if 'no-history' selected, other options disabled",
+      "ml_encoding": "Binary flags for each type: reading, writing, math, general, multiple. no-history=all zeros"
+    },
+    "familyADHD": {
+      "type": "string",
+      "enum": ["no-history", "one-parent", "both-parents", "siblings", "unsure"],
+      "description": "Single selection for family history of ADHD/attention difficulties",
+      "ml_encoding": "0=no-history, 1=one-parent, 2=both-parents, 3=siblings, 4=unsure"
+    },
+    "dataConsent": {
+      "type": "boolean"
+    },
+    "submittedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "ml_metadata": {
+    "age_months": "Calculated from dateOfBirth at runtime",
+    "vision_concern_flag": "Binary: visionStatus in ['concerns', 'not-tested'] = 1, else 0",
+    "hearing_concern_flag": "Binary: hearingStatus in ['concerns', 'diagnosed', 'not-tested'] = 1, else 0",
+    "encoding_note": "All categorical fields are encoded with _encoded suffix. Arrays become binary vectors.",
+    "output_format": {
+      "single_values": "fieldName_encoded: integer (0-N)",
+      "arrays": "fieldName_encoded: [0,1,0,1,...] binary vector",
+      "example": {
+        "gender_encoded": 0,
+        "learningSupport_encoded": "[0,1,0,0,0,0,1]",
+        "age_months": 72,
+        "vision_concern_flag": 0,
+        "hearing_concern_flag": 0
+      }
+    }
+  },
+  "required": [
+    "fullName",
+    "dateOfBirth",
+    "gender",
+    "primaryLanguage",
+    "multilingualExposure",
+    "relationship",
+    "email",
+    "educationalSetting",
+    "dataConsent"
+  ]
+}

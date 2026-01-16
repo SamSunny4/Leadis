@@ -16,6 +16,36 @@ body {
   overflow-x: hidden;
 }
 
+/* Date input styling for green theme */
+input[type="date"] {
+  color-scheme: light;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  background-color: #f0fdf4;
+  transition: background-color 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  background-color: #86efac;
+}
+
+input[type="date"]:focus {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
+/* Select and input focus states */
+select:focus,
+input:focus,
+textarea:focus {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
