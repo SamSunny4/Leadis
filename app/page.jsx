@@ -198,7 +198,7 @@ const HeroSection = () => {
               style={styles.primaryButton}
             >
               <PlayCircle size={22} />
-              Start Free Screening
+              Start Screening
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
@@ -212,7 +212,7 @@ const HeroSection = () => {
           <div style={styles.trustBadges}>
             <div style={styles.trustItem}>
               <Check size={18} color={colors.primary} />
-              <span>100% Free</span>
+              <span>Highly Accurate</span>
             </div>
             <div style={styles.trustItem}>
               <Shield size={18} color={colors.primary} />
@@ -507,10 +507,10 @@ const CTASection = () => {
           whileTap={{ scale: 0.95 }}
           style={styles.ctaButton}
         >
-          Let's Go! Start Free Screening
+          Let's Go! Start Screening
           <ArrowRight size={22} />
         </motion.button>
-        <p style={styles.ctaNote}>No sign-up needed • 100% free • Takes 15-20 mins</p>
+        <p style={styles.ctaNote}>No sign-up needed • Highly accurate • Takes 15-20 mins</p>
       </motion.div>
     </section>
   );
