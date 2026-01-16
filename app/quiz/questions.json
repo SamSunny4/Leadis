@@ -1,0 +1,123 @@
+[
+    {
+        "id": 1,
+        "type": "audio",
+        "question": "If you have 3 packs of gum and each pack has 8 pieces, how many pieces of gum do you have in total?",
+        "options": [
+            "11",
+            "24",
+            "16",
+            "32"
+        ],
+        "correctAnswer": "24"
+    },
+    {
+        "id": 2,
+        "type": "text",
+        "question": "What is the next number in the pattern: 2, 4, 8, 16, ___?",
+        "options": [
+            "24",
+            "32",
+            "20",
+            "30"
+        ],
+        "correctAnswer": "32"
+    },
+    {
+        "id": 3,
+        "type": "visual",
+        "question": "Which shape has 5 sides?",
+        "options": [
+            "Square",
+            "Triangle",
+            "Pentagon",
+            "Hexagon"
+        ],
+        "correctAnswer": "Pentagon"
+    },
+    {
+        "id": 4,
+        "type": "minigame",
+		  "Minigame-type": "puzzle",
+        "question": "If a movie starts at 2:30 PM and lasts for 1 hour and 45 minutes, what time does it end?",
+        "options": [
+            "4:00 PM",
+            "4:15 PM",
+            "3:45 PM",
+            "4:30 PM"
+        ],
+        "correctAnswer": "4:15 PM"
+    },
+    {
+        "id": 5,
+        "type": "text",
+        "question": "Which fraction is larger: 1/2 or 1/4?",
+        "options": [
+            "1/2",
+            "1/4",
+            "They are equal",
+            "Impossible to tell"
+        ],
+        "correctAnswer": "1/2"
+    },
+    {
+        "id": 6,
+        "type": "text",
+        "question": "Tom is taller than Jerry. Jerry is taller than Spike. Who is the shortest?",
+        "options": [
+            "Tom",
+            "Jerry",
+            "Spike",
+            "They are all the same height"
+        ],
+        "correctAnswer": "Spike"
+    },
+    {
+        "id": 7,
+        "type": "text",
+        "question": "What is 150 divided by 3?",
+        "options": [
+            "50",
+            "30",
+            "45",
+            "60"
+        ],
+        "correctAnswer": "50"
+    },
+    {
+        "id": 8,
+        "type": "text",
+        "question": "How many minutes are there in 3 hours?",
+        "options": [
+            "120",
+            "150",
+            "180",
+            "200"
+        ],
+        "correctAnswer": "180"
+    },
+    {
+        "id": 9,
+        "type": "text",
+        "question": "If yesterday was Tuesday, what day will it be in 3 days?",
+        "options": [
+            "Friday",
+            "Saturday",
+            "Sunday",
+            "Monday"
+        ],
+        "correctAnswer": "Saturday"
+    },
+    {
+        "id": 10,
+        "type": "text",
+        "question": "Select the odd one out.",
+        "options": [
+            "Apple",
+            "Banana",
+            "Carrot",
+            "Orange"
+        ],
+        "correctAnswer": "Carrot"
+    }
+]
