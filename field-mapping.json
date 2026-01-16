@@ -1,0 +1,294 @@
+{
+  "categorical_features": [
+    {
+      "attribute": "primary_language",
+      "dataType": "categorical",
+      "valueMap": { "english": 0 }
+    },
+    {
+      "attribute": "schooling_type",
+      "dataType": "categorical",
+      "valueMap": {
+        "not-enrolled": 0,
+        "daycare": 1,
+        "preschool-kindergarten": 2,
+        "school": 3,
+        "homeschooling": 4,
+        "other": 5
+      }
+    },
+    {
+      "attribute": "gender",
+      "dataType": "categorical",
+      "valueMap": {
+        "male": 0,
+        "female": 1,
+        "other": 2,
+        "prefer-not-to-say": 3
+      }
+    },
+    {
+      "attribute": "multilingualExposure",
+      "dataType": "categorical",
+      "valueMap": { "Monolingual": 0, "Minimal": 1, "Moderate": 2, "High": 3, "Native bilingual": 4 }
+    },
+    {
+      "attribute": "birthHistory",
+      "dataType": "categorical",
+      "valueMap": {
+        "full-term": 0,
+        "preterm": 1,
+        "nicu": 2,
+        "complications": 3,
+        "unknown": 4
+      }
+    },
+    {
+      "attribute": "hearingStatus",
+      "dataType": "categorical",
+      "valueMap": {
+        "normal": 0,
+        "tested-normal": 0,
+        "concerns": 1,
+        "diagnosed": 2,
+        "not-tested": 3
+      }
+    },
+    {
+      "attribute": "visionStatus",
+      "dataType": "categorical",
+      "valueMap": {
+        "normal": 0,
+        "tested-normal": 0,
+        "glasses": 1,
+        "concerns": 2,
+        "not-tested": 3
+      }
+    }
+  ],
+  "numerical_features": [
+    {
+      "attribute": "age_months",
+      "dataType": "numerical",
+      "valueRange": { "min": 36, "max": 144 }
+    },
+    {
+      "attribute": "multilingual_exposure",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 4 }
+    },
+    {
+      "attribute": "age_first_word_months",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 48 }
+    },
+    {
+      "attribute": "age_first_sentence_months",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 60 }
+    },
+    {
+      "attribute": "history_speech_therapy",
+      "dataType": "numerical",
+      "valueMap": { "0": 0, "1": 1, "2": 2, "3": 3 }
+    },
+    {
+      "attribute": "history_motor_delay",
+      "dataType": "numerical",
+      "valueMap": { "0": 0, "1": 1, "2": 2, "3": 3, "4": 4 }
+    },
+    {
+      "attribute": "vision_concerns",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 1 }
+    },
+    {
+      "attribute": "hearing_concerns",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 1 }
+    },
+    {
+      "attribute": "family_learning_difficulty",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 1 }
+    },
+    {
+      "attribute": "family_adhd",
+      "dataType": "numerical",
+      "valueMap": {
+        "no-history": 0,
+        "one-parent": 1,
+        "both-parents": 2,
+        "siblings": 3,
+        "unsure": 4
+      }
+    },
+    {
+      "attribute": "mean_response_accuracy",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "response_accuracy_std",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "mean_response_time_ms",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 60000 }
+    },
+    {
+      "attribute": "response_time_std_ms",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 30000 }
+    },
+    {
+      "attribute": "task_completion_rate",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "mean_focus_duration_sec",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 600 }
+    },
+    {
+      "attribute": "attention_dropoff_slope",
+      "dataType": "numerical",
+      "valueRange": { "min": -1.0, "max": 1.0 }
+    },
+    {
+      "attribute": "random_interaction_rate",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "task_abandonment_count",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 50 }
+    },
+    {
+      "attribute": "max_sequence_length",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 20 }
+    },
+    {
+      "attribute": "sequence_order_error_rate",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "visual_search_time_ms",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 30000 }
+    },
+    {
+      "attribute": "instruction_follow_accuracy",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "left_right_confusion_rate",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "speech_rate_wpm",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 200 }
+    },
+    {
+      "attribute": "auditory_processing_accuracy",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "average_audio_replays",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 10 }
+    },
+    {
+      "attribute": "hesitation_frequency",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 50 }
+    },
+    {
+      "attribute": "reading_speed_wpm",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 300 }
+    },
+    {
+      "attribute": "reading_accuracy",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "letter_reversal_rate",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "audio_text_mismatch_rate",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "pref_visual",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "pref_auditory",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "attention_span_average",
+      "dataType": "numerical",
+      "valueRange": { "min": 0, "max": 600 }
+    }
+  ],
+  "output_targets": [
+    {
+      "attribute": "risk_reading",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "risk_writing",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "risk_attention",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "risk_working_memory",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "risk_expressive_language",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "risk_receptive_language",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "risk_visual_processing",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    },
+    {
+      "attribute": "risk_motor_coordination",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 }
+    }
+  ]
+}

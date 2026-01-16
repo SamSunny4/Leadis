@@ -18,8 +18,15 @@ import {
   Check,
   Smile
 } from 'lucide-react';
+import { 
+  getUserData, 
+  saveUserData, 
+  mapScreeningFormToUserData,
+  initializeUserData,
+  clearUserData as clearUserDataStorage
+} from '@/utils/userDataManager';
 
-// LocalStorage key for form data
+// LocalStorage key for form data (legacy)
 const STORAGE_KEY = 'leadis_screening_form';
 
 // ML Encoding Map
@@ -44,7 +51,8 @@ const ML_ENCODING = {
   medicalConditions: { "Autism Spectrum Disorder (ASD)": 0, "ADHD": 1, "Dyslexia": 2, "Speech delay": 3, "Motor coordination issues": 4, "Sensory processing disorder": 5, "Developmental delay": 6, "Anxiety": 7, "Other diagnosed condition": 8, "None": 9 },
   learningSupport: { "special-education": 0, "resource-room": 1, "tutoring": 2, "speech-support": 3, "occupational-therapy": 4, "no-support": 5, "unsure": 6 },
   academicDifficulties: { "following-instructions": 0, "reading": 1, "writing": 2, "math": 3, "attention": 4, "memory": 5, "none": 6, "unsure": 7 },
-  familyLearningDifficulty: { "no-history": 0, "reading": 1, "writing": 2, "math": 3, "general": 4, "multiple": 5, "unsure": 6 }
+  familyLearningDifficulty: { "no-history": 0, "reading": 1, "writing": 2, "math": 3, "general": 4, "multiple": 5, "unsure": 6 },
+  selectedTests: { "reading": 0, "writing": 1, "listening": 2, "math": 3, "visual": 4 }
 };
 
 // Encode form data for ML processing
@@ -77,7 +85,7 @@ const encodeFormDataForML = (formData) => {
   }
 
   // Encode array fields to binary vectors
-  ['learningSupport', 'academicDifficulties', 'familyLearningDifficulty'].forEach(field => {
+  ['learningSupport', 'academicDifficulties', 'familyLearningDifficulty', 'selectedTests'].forEach(field => {
     if (Array.isArray(formData[field])) {
       const maxLength = Object.keys(ML_ENCODING[field]).length;
       const vector = Array(maxLength).fill(0);
@@ -155,7 +163,10 @@ const defaultFormData = {
   historyMotorDelay: '',
   familyLearningDifficulty: [],
   familyADHD: '',
-
+  
+  // Selected Tests (populated if user chooses specific area testing)
+  selectedTests: [],
+  
   // Consent
   dataConsent: false,
 };
@@ -184,8 +195,13 @@ export default function ScreeningForm() {
   useEffect(() => {
     if (isLoaded) {
       try {
+        // Save to legacy format for backward compatibility
         const encodedData = encodeFormDataForML(formData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(encodedData));
+        
+        // Save to new user-schema format
+        const userData = mapScreeningFormToUserData(formData);
+        saveUserData(userData);
       } catch (error) {
         console.error('Error saving form data:', error);
       }
@@ -214,22 +230,33 @@ export default function ScreeningForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Encode form data for ML processing
-    const encodedData = encodeFormDataForML(formData);
-
-    // Save final form data with timestamp and ML encodings
+    
+    // Reset selectedTests to empty array since user completed screening (not specific area testing)
+    const formDataWithReset = {
+      ...formData,
+      selectedTests: []
+    };
+    
+    // Encode form data for ML processing (legacy)
+    const encodedData = encodeFormDataForML(formDataWithReset);
+    
+    // Save final form data with timestamp and ML encodings (legacy)
     const submissionData = {
       ...encodedData,
       submittedAt: new Date().toISOString(),
     };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(submissionData));
-    console.log('Form submitted (ML-encoded):', submissionData);
-    console.log('Original form data:', formData);
-
-    // Navigate to quiz page
-    router.push('/quiz');
+    
+    // Save to new user-schema format
+    const userData = mapScreeningFormToUserData(formDataWithReset);
+    saveUserData(userData);
+    
+    console.log('Form submitted (ML-encoded - legacy):', submissionData);
+    console.log('Form submitted (user-schema format):', userData);
+    console.log('Original form data:', formDataWithReset);
+    // TODO: Navigate to assessment page
+    clearUserDataStorage(); // Clear user-schema data
   };
 
   // Clear saved form data
@@ -1443,6 +1470,44 @@ const styles = {
     fontSize: '14px',
     color: colors.gray,
     lineHeight: 1.6,
+  },
+  specificTestButton: {
+    marginTop: '24px',
+  },
+  testSelectionLink: {
+    display: 'block',
+    textDecoration: 'none',
+    backgroundColor: colors.white,
+    borderRadius: '16px',
+    border: `2px solid ${colors.primary}`,
+    padding: '20px',
+    transition: 'all 0.3s',
+  },
+  testSelectionContent: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  testSelectionIcon: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '12px',
+    backgroundColor: colors.lightBg,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  testSelectionTitle: {
+    fontSize: '18px',
+    fontWeight: 700,
+    color: colors.dark,
+    marginBottom: '4px',
+    fontFamily: "'Fredoka', sans-serif",
+  },
+  testSelectionSubtitle: {
+    fontSize: '14px',
+    color: colors.gray,
   },
   consentBox: {
     padding: '28px',

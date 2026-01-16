@@ -22,7 +22,11 @@ import {
   Smile,
   Puzzle,
   Music,
-  Palette
+  Palette,
+  PenTool,
+  Ear,
+  Calculator,
+  Eye
 } from 'lucide-react';
 
 // Fun color palette - Light Green Theme
@@ -164,7 +168,9 @@ const HeroSection = () => {
           <a href="#how-it-works" style={styles.navLink}>How It Works</a>
           <a href="#features" style={styles.navLink}>Features</a>
           <a href="#about" style={styles.navLink}>About</a>
-          <button style={styles.navButton}>Get Started</button>
+          <Link href="/screening" style={{ textDecoration: 'none' }}>
+            <button style={styles.navButton}>Get Started</button>
+          </Link>
         </div>
       </nav>
 
@@ -203,13 +209,6 @@ const HeroSection = () => {
                 Start Screening
               </motion.button>
             </Link>
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              style={styles.secondaryButton}
-            >
-              Check Specific Area
-            </motion.button>
           </div>
 
           <div style={styles.trustBadges}>
@@ -490,6 +489,56 @@ const ScreeningAreas = () => {
   );
 };
 
+// Check Specific Areas Section
+const CheckSpecificAreasSection = () => {
+  return (
+    <section style={styles.specificAreasSection}>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        style={styles.specificAreasContent}
+      >
+        <div style={styles.specificAreasHeader}>
+          <BookOpen size={40} color={colors.primary} />
+          <h2 style={styles.specificAreasTitle}>Target Specific Learning Areas</h2>
+          <p style={styles.specificAreasSubtitle}>
+            Already know which areas your child struggles with? Skip the general screening and dive directly into targeted assessments for specific learning disabilities.
+          </p>
+        </div>
+
+        <Link href="/test-selection" style={{ textDecoration: 'none' }}>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            style={styles.specificAreasButton}
+          >
+            <BookOpen size={24} />
+            <span>Check Specific Areas</span>
+            <ArrowRight size={24} />
+          </motion.button>
+        </Link>
+
+        <div style={styles.areasGrid}>
+          {[
+            { icon: <BookOpen size={24} />, name: 'Reading', color: colors.primary },
+            { icon: <PenTool size={24} />, name: 'Writing', color: colors.accentBlue },
+            { icon: <Ear size={24} />, name: 'Listening', color: colors.accentOrange },
+            { icon: <Calculator size={24} />, name: 'Math', color: colors.accentPink },
+            { icon: <Eye size={24} />, name: 'Visual Processing', color: colors.accent },
+          ].map((area) => (
+            <div key={area.name} style={{ ...styles.areaTag, borderColor: area.color }}>
+              <div style={{ color: area.color }}>{area.icon}</div>
+              <span style={{ color: area.color }}>{area.name}</span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    </section>
+  );
+};
+
 // CTA Section
 const CTASection = () => {
   return (
@@ -577,6 +626,7 @@ export default function Home() {
       <FeaturesSection />
       <AwarenessBanner />
       <ScreeningAreas />
+      <CheckSpecificAreasSection />
       <CTASection />
       <Footer />
     </div>
@@ -1057,6 +1107,68 @@ const styles = {
   areaDescription: {
     fontSize: '14px',
     color: colors.gray,
+  },
+
+  // Check Specific Areas Section
+  specificAreasSection: {
+    padding: '100px 80px',
+    backgroundColor: colors.white,
+  },
+  specificAreasContent: {
+    maxWidth: '900px',
+    margin: '0 auto',
+    textAlign: 'center',
+  },
+  specificAreasHeader: {
+    marginBottom: '40px',
+  },
+  specificAreasTitle: {
+    fontSize: '40px',
+    fontWeight: 700,
+    color: colors.dark,
+    marginTop: '20px',
+    marginBottom: '16px',
+    fontFamily: 'var(--font-fredoka), sans-serif',
+  },
+  specificAreasSubtitle: {
+    fontSize: '18px',
+    color: colors.gray,
+    lineHeight: 1.7,
+    maxWidth: '700px',
+    margin: '0 auto',
+  },
+  specificAreasButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '16px',
+    backgroundColor: colors.primary,
+    color: colors.white,
+    border: 'none',
+    padding: '20px 48px',
+    borderRadius: '16px',
+    fontSize: '18px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    marginBottom: '40px',
+    fontFamily: "'Nunito', sans-serif",
+    boxShadow: `0 8px 24px ${colors.primary}30`,
+  },
+  areasGrid: {
+    display: 'flex',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: '16px',
+  },
+  areaTag: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '12px 24px',
+    borderRadius: '30px',
+    border: '2px solid',
+    backgroundColor: colors.white,
+    fontSize: '16px',
+    fontWeight: 600,
   },
 
   // CTA Section
