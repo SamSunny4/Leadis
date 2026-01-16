@@ -255,8 +255,9 @@ export default function ScreeningForm() {
     console.log('Form submitted (ML-encoded - legacy):', submissionData);
     console.log('Form submitted (user-schema format):', userData);
     console.log('Original form data:', formDataWithReset);
-    // TODO: Navigate to assessment page
-    clearUserDataStorage(); // Clear user-schema data
+    
+    // Navigate to quiz page
+    router.push('/quiz');
   };
 
   // Clear saved form data
