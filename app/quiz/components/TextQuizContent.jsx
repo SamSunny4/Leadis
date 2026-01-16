@@ -1,106 +1,164 @@
 'use client';
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { colors, contentStyles } from '../styles/quizStyles';
 
-/**
- * Helper component for custom radio check icon
- */
-const Check = ({ size, color }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
-);
+const optionLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 /**
  * TextQuizContent - Renders standard multiple-choice text questions
- * 
- * @param {Object} props
- * @param {Object} props.question - The question object
- * @param {string} props.selectedAnswer - Currently selected answer
- * @param {Function} props.onAnswerSelect - Callback when answer is selected
- * @param {Function} props.onNext - Callback for next button
- * @param {Function} props.onPrev - Callback for previous button
- * @param {boolean} props.isFirst - Whether this is the first question
- * @param {boolean} props.isLast - Whether this is the last question
+ * Clean, kid-friendly design with animations
  */
 export default function TextQuizContent({
     question,
+    questionNumber,
     selectedAnswer,
     onAnswerSelect,
     onNext,
     onPrev,
     isFirst,
     isLast,
+    showCelebration,
 }) {
+    const [hoveredOption, setHoveredOption] = useState(null);
+
     return (
         <motion.div
             key={question.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -30, scale: 0.95 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
             style={contentStyles.questionCard}
         >
-            <div style={contentStyles.questionBox}>
-                <h2 style={contentStyles.questionText}>Q) {question.question}</h2>
-                <div style={contentStyles.questionUnderline}></div>
+            {/* Decorative circle */}
+            <div style={contentStyles.cardDecoration} />
+            
+            <div style={contentStyles.questionArea}>
+                {/* Question Box */}
+                <div style={contentStyles.questionBox}>
+                    <span style={contentStyles.questionNumber}>
+                        Question {questionNumber}
+                    </span>
+                    <h2 style={contentStyles.questionText}>
+                        {question.question}
+                    </h2>
+                    <div style={contentStyles.questionUnderline}></div>
+                </div>
+
+                {/* Options List */}
+                <div style={contentStyles.optionsList}>
+                    {question.options.map((option, index) => {
+                        const isSelected = selectedAnswer === option;
+                        const isHovered = hoveredOption === index;
+                        
+                        return (
+                            <motion.label
+                                key={index}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.08 }}
+                                whileHover={{ scale: 1.02, x: 8 }}
+                                whileTap={{ scale: 0.98 }}
+                                onMouseEnter={() => setHoveredOption(index)}
+                                onMouseLeave={() => setHoveredOption(null)}
+                                style={{
+                                    ...contentStyles.optionLabel,
+                                    borderColor: isSelected ? colors.primary : isHovered ? colors.primaryLight : '#e2e8f0',
+                                    backgroundColor: isSelected ? colors.lightBg : 'white',
+                                    boxShadow: isSelected 
+                                        ? '0 8px 25px rgba(34, 197, 94, 0.25)' 
+                                        : isHovered 
+                                            ? '0 8px 20px rgba(0, 0, 0, 0.1)' 
+                                            : '0 4px 15px rgba(0, 0, 0, 0.05)',
+                                }}
+                            >
+                                {/* Option Letter Badge */}
+                                <div style={{
+                                    ...contentStyles.optionLetter,
+                                    backgroundColor: isSelected ? colors.primary : isHovered ? colors.primaryLight : '#f1f5f9',
+                                    color: isSelected ? 'white' : isHovered ? colors.primaryDark : colors.gray,
+                                }}>
+                                    {optionLetters[index]}
+                                </div>
+                                
+                                {/* Hidden Radio */}
+                                <input
+                                    type="radio"
+                                    name={`question-${question.id}`}
+                                    value={option}
+                                    checked={isSelected}
+                                    onChange={() => onAnswerSelect(option)}
+                                    style={{ display: 'none' }}
+                                />
+                                
+                                {/* Option Text */}
+                                <span style={{
+                                    ...contentStyles.optionText,
+                                    color: isSelected ? colors.primaryDark : colors.dark,
+                                }}>
+                                    {option}
+                                </span>
+                                
+                                {/* Checkmark */}
+                                {isSelected && (
+                                    <Check size={20} color={colors.primary} style={{ marginLeft: 'auto' }} />
+                                )}
+                            </motion.label>
+                        );
+                    })}
+                </div>
             </div>
 
-            <div style={contentStyles.optionsList}>
-                {question.options.map((option, index) => (
-                    <label
-                        key={index}
-                        style={{
-                            ...contentStyles.optionLabel,
-                            borderColor: selectedAnswer === option ? colors.primary : colors.primaryLight,
-                            backgroundColor: selectedAnswer === option ? colors.lightBg : colors.white,
-                        }}
-                    >
-                        <div style={{
-                            ...contentStyles.customRadio,
-                            backgroundColor: selectedAnswer === option ? colors.primary : 'transparent',
-                            borderColor: selectedAnswer === option ? colors.primary : '#ccc'
-                        }}>
-                            {selectedAnswer === option && <Check size={12} color="white" />}
-                        </div>
-                        <input
-                            type="radio"
-                            name={`question-${question.id}`}
-                            value={option}
-                            checked={selectedAnswer === option}
-                            onChange={() => onAnswerSelect(option)}
-                            style={{ display: 'none' }}
-                        />
-                        <span style={contentStyles.optionText}>{option}</span>
-                    </label>
-                ))}
-            </div>
-
+            {/* Navigation Buttons */}
             <div style={contentStyles.navigationButtons}>
-                <button
+                <motion.button
                     onClick={onPrev}
                     disabled={isFirst}
+                    whileHover={!isFirst ? { scale: 1.05 } : {}}
+                    whileTap={!isFirst ? { scale: 0.95 } : {}}
                     style={{
                         ...contentStyles.navButton,
-                        opacity: isFirst ? 0.5 : 1,
+                        opacity: isFirst ? 0.4 : 1,
                         cursor: isFirst ? 'not-allowed' : 'pointer',
                     }}
                 >
                     <ArrowLeft size={20} />
-                    Prev
-                </button>
+                    Back
+                </motion.button>
 
-                <button
+                <motion.button
                     onClick={onNext}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
                     style={contentStyles.nextButton}
                 >
                     {isLast ? 'Finish' : 'Next'}
                     <ArrowRight size={20} />
-                </button>
+                </motion.button>
             </div>
+
+            {/* Celebration animation */}
+            <AnimatePresence>
+                {showCelebration && (
+                    <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            pointerEvents: 'none',
+                        }}
+                    >
+                        <Check size={60} color={colors.primary} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }
