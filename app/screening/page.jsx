@@ -21,6 +21,80 @@ import {
 // LocalStorage key for form data
 const STORAGE_KEY = 'leadis_screening_form';
 
+// ML Encoding Map
+const ML_ENCODING = {
+  gender: { "male": 0, "female": 1, "other": 2, "prefer-not-to-say": 3 },
+  primaryLanguage: { "english": 0 },
+  multilingualExposure: { "0": 0, "1": 1, "2": 2, "3": 3, "4": 4 },
+  relationship: { "mother": 0, "father": 1, "grandparent": 2, "guardian": 3, "other": 4 },
+  birthHistory: { "full-term": 0, "preterm": 1, "nicu": 2, "complications": 3, "unknown": 4 },
+  hearingStatus: { "normal": 0, "tested-normal": 0, "concerns": 1, "diagnosed": 2, "not-tested": 3 },
+  visionStatus: { "normal": 0, "tested-normal": 0, "glasses": 1, "concerns": 2, "not-tested": 3 },
+  educationalSetting: { "not-enrolled": 0, "daycare": 1, "preschool-kindergarten": 2, "school": 3, "homeschooling": 4, "other": 5 },
+  currentGrade: { "not-applicable": 0, "preschool": 1, "kindergarten": 2, "1": 3, "2": 4, "3": 5, "4": 6, "5": 7, "6+": 8 },
+  mediumOfInstruction: { "english": 0, "regional": 1, "bilingual": 2, "other": 3 },
+  learningExperience: { "similar": 0, "slightly-slower": 1, "much-slower": 2, "highly-variable": 3, "not-sure": 4 },
+  ageFirstWordMonths: { "6": 6, "9": 9, "12": 12, "15": 15, "18": 18, "24": 24, "30": 30, "36": 36, "48": 48, "0": 0 },
+  ageFirstSentenceMonths: { "12": 12, "18": 18, "24": 24, "30": 30, "36": 36, "48": 48, "60": 60, "0": 0 },
+  historySpeechTherapy: { "0": 0, "1": 1, "2": 2, "3": 3 },
+  historyMotorDelay: { "0": 0, "1": 1, "2": 2, "3": 3, "4": 4 },
+  familyADHD: { "no-history": 0, "one-parent": 1, "both-parents": 2, "siblings": 3, "unsure": 4 },
+  // Array encodings
+  medicalConditions: { "Autism Spectrum Disorder (ASD)": 0, "ADHD": 1, "Dyslexia": 2, "Speech delay": 3, "Motor coordination issues": 4, "Sensory processing disorder": 5, "Developmental delay": 6, "Anxiety": 7, "Other diagnosed condition": 8, "None": 9 },
+  learningSupport: { "special-education": 0, "resource-room": 1, "tutoring": 2, "speech-support": 3, "occupational-therapy": 4, "no-support": 5, "unsure": 6 },
+  academicDifficulties: { "following-instructions": 0, "reading": 1, "writing": 2, "math": 3, "attention": 4, "memory": 5, "none": 6, "unsure": 7 },
+  familyLearningDifficulty: { "no-history": 0, "reading": 1, "writing": 2, "math": 3, "general": 4, "multiple": 5, "unsure": 6 }
+};
+
+// Encode form data for ML processing
+const encodeFormDataForML = (formData) => {
+  const encoded = { ...formData };
+  
+  // Calculate age in months from DOB
+  if (formData.dateOfBirth) {
+    const birthDate = new Date(formData.dateOfBirth);
+    const ageMonths = Math.floor((Date.now() - birthDate) / (1000 * 60 * 60 * 24 * 30.44));
+    encoded.age_months = ageMonths;
+  }
+  
+  // Encode single-value fields
+  Object.keys(ML_ENCODING).forEach(field => {
+    if (formData[field] !== undefined && formData[field] !== '' && !Array.isArray(formData[field])) {
+      encoded[`${field}_encoded`] = ML_ENCODING[field][formData[field]] ?? null;
+    }
+  });
+  
+  // Encode medical conditions (comma-separated to binary vector)
+  if (formData.medicalConditions) {
+    const conditions = formData.medicalConditions.split(',').map(c => c.trim());
+    const vector = Array(10).fill(0);
+    conditions.forEach(condition => {
+      const index = ML_ENCODING.medicalConditions[condition];
+      if (index !== undefined) vector[index] = 1;
+    });
+    encoded.medicalConditions_encoded = vector;
+  }
+  
+  // Encode array fields to binary vectors
+  ['learningSupport', 'academicDifficulties', 'familyLearningDifficulty'].forEach(field => {
+    if (Array.isArray(formData[field])) {
+      const maxLength = Object.keys(ML_ENCODING[field]).length;
+      const vector = Array(maxLength).fill(0);
+      formData[field].forEach(value => {
+        const index = ML_ENCODING[field][value];
+        if (index !== undefined) vector[index] = 1;
+      });
+      encoded[`${field}_encoded`] = vector;
+    }
+  });
+  
+  // Add concern flags
+  encoded.vision_concern_flag = ['concerns', 'not-tested'].includes(formData.visionStatus) ? 1 : 0;
+  encoded.hearing_concern_flag = ['concerns', 'diagnosed', 'not-tested'].includes(formData.hearingStatus) ? 1 : 0;
+  
+  return encoded;
+};
+
 // Fun color palette - Light Green Theme
 const colors = {
   primary: '#22c55e',
@@ -108,7 +182,8 @@ export default function ScreeningForm() {
   useEffect(() => {
     if (isLoaded) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+        const encodedData = encodeFormDataForML(formData);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(encodedData));
       } catch (error) {
         console.error('Error saving form data:', error);
       }
@@ -137,13 +212,19 @@ export default function ScreeningForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Save final form data with timestamp
+    
+    // Encode form data for ML processing
+    const encodedData = encodeFormDataForML(formData);
+    
+    // Save final form data with timestamp and ML encodings
     const submissionData = {
-      ...formData,
+      ...encodedData,
       submittedAt: new Date().toISOString(),
     };
+    
     localStorage.setItem(STORAGE_KEY, JSON.stringify(submissionData));
-    console.log('Form submitted:', submissionData);
+    console.log('Form submitted (ML-encoded):', submissionData);
+    console.log('Original form data:', formData);
     // TODO: Navigate to assessment page
   };
 

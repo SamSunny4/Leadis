@@ -1,0 +1,173 @@
+{
+  "encoding_map": {
+    "gender": {
+      "male": 0,
+      "female": 1,
+      "other": 2,
+      "prefer-not-to-say": 3
+    },
+    "primaryLanguage": {
+      "english": 0
+    },
+    "multilingualExposure": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4
+    },
+    "relationship": {
+      "mother": 0,
+      "father": 1,
+      "grandparent": 2,
+      "guardian": 3,
+      "other": 4
+    },
+    "birthHistory": {
+      "full-term": 0,
+      "preterm": 1,
+      "nicu": 2,
+      "complications": 3,
+      "unknown": 4
+    },
+    "medicalConditions": {
+      "Autism Spectrum Disorder (ASD)": 0,
+      "ADHD": 1,
+      "Dyslexia": 2,
+      "Speech delay": 3,
+      "Motor coordination issues": 4,
+      "Sensory processing disorder": 5,
+      "Developmental delay": 6,
+      "Anxiety": 7,
+      "Other diagnosed condition": 8,
+      "None": 9
+    },
+    "hearingStatus": {
+      "normal": 0,
+      "tested-normal": 0,
+      "concerns": 1,
+      "diagnosed": 2,
+      "not-tested": 3
+    },
+    "visionStatus": {
+      "normal": 0,
+      "tested-normal": 0,
+      "glasses": 1,
+      "concerns": 2,
+      "not-tested": 3
+    },
+    "educationalSetting": {
+      "not-enrolled": 0,
+      "daycare": 1,
+      "preschool-kindergarten": 2,
+      "school": 3,
+      "homeschooling": 4,
+      "other": 5
+    },
+    "currentGrade": {
+      "not-applicable": 0,
+      "preschool": 1,
+      "kindergarten": 2,
+      "1": 3,
+      "2": 4,
+      "3": 5,
+      "4": 6,
+      "5": 7,
+      "6+": 8
+    },
+    "mediumOfInstruction": {
+      "english": 0,
+      "regional": 1,
+      "bilingual": 2,
+      "other": 3
+    },
+    "learningSupport": {
+      "special-education": 0,
+      "resource-room": 1,
+      "tutoring": 2,
+      "speech-support": 3,
+      "occupational-therapy": 4,
+      "no-support": 5,
+      "unsure": 6
+    },
+    "learningExperience": {
+      "similar": 0,
+      "slightly-slower": 1,
+      "much-slower": 2,
+      "highly-variable": 3,
+      "not-sure": 4
+    },
+    "academicDifficulties": {
+      "following-instructions": 0,
+      "reading": 1,
+      "writing": 2,
+      "math": 3,
+      "attention": 4,
+      "memory": 5,
+      "none": 6,
+      "unsure": 7
+    },
+    "ageFirstWordMonths": {
+      "6": 6,
+      "9": 9,
+      "12": 12,
+      "15": 15,
+      "18": 18,
+      "24": 24,
+      "30": 30,
+      "36": 36,
+      "48": 48,
+      "0": 0
+    },
+    "ageFirstSentenceMonths": {
+      "12": 12,
+      "18": 18,
+      "24": 24,
+      "30": 30,
+      "36": 36,
+      "48": 48,
+      "60": 60,
+      "0": 0
+    },
+    "historySpeechTherapy": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3
+    },
+    "historyMotorDelay": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4
+    },
+    "familyLearningDifficulty": {
+      "no-history": 0,
+      "reading": 1,
+      "writing": 2,
+      "math": 3,
+      "general": 4,
+      "multiple": 5,
+      "unsure": 6
+    },
+    "familyADHD": {
+      "no-history": 0,
+      "one-parent": 1,
+      "both-parents": 2,
+      "siblings": 3,
+      "unsure": 4
+    }
+  },
+  "encoding_functions": {
+    "medicalConditions": "comma_separated_to_binary_vector",
+    "learningSupport": "array_to_binary_vector",
+    "academicDifficulties": "array_to_binary_vector",
+    "familyLearningDifficulty": "array_to_binary_vector"
+  },
+  "calculated_fields": {
+    "age_months": "Calculate from dateOfBirth at runtime: Math.floor((Date.now() - new Date(dateOfBirth)) / (1000 * 60 * 60 * 24 * 30.44))",
+    "vision_concern_flag": "visionStatus in ['concerns', 'not-tested'] ? 1 : 0",
+    "hearing_concern_flag": "hearingStatus in ['concerns', 'diagnosed', 'not-tested'] ? 1 : 0"
+  }
+}

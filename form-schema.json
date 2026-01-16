@@ -147,8 +147,20 @@
   },
   "ml_metadata": {
     "age_months": "Calculated from dateOfBirth at runtime",
-    "vision_concerns": "Map visionStatus: concerns|not-tested = 1, else 0",
-    "hearing_concerns": "Map hearingStatus: concerns|diagnosed|not-tested = 1, else 0"
+    "vision_concern_flag": "Binary: visionStatus in ['concerns', 'not-tested'] = 1, else 0",
+    "hearing_concern_flag": "Binary: hearingStatus in ['concerns', 'diagnosed', 'not-tested'] = 1, else 0",
+    "encoding_note": "All categorical fields are encoded with _encoded suffix. Arrays become binary vectors.",
+    "output_format": {
+      "single_values": "fieldName_encoded: integer (0-N)",
+      "arrays": "fieldName_encoded: [0,1,0,1,...] binary vector",
+      "example": {
+        "gender_encoded": 0,
+        "learningSupport_encoded": "[0,1,0,0,0,0,1]",
+        "age_months": 72,
+        "vision_concern_flag": 0,
+        "hearing_concern_flag": 0
+      }
+    }
   },
   "required": [
     "fullName",
@@ -158,7 +170,7 @@
     "multilingualExposure",
     "relationship",
     "email",
-    "schoolingType",
+    "educationalSetting",
     "dataConsent"
   ]
 }
