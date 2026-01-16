@@ -157,13 +157,21 @@
       "both-parents": 2,
       "siblings": 3,
       "unsure": 4
+    },
+    "selectedTests": {
+      "reading": 0,
+      "writing": 1,
+      "listening": 2,
+      "math": 3,
+      "visual": 4
     }
   },
   "encoding_functions": {
     "medicalConditions": "comma_separated_to_binary_vector",
     "learningSupport": "array_to_binary_vector",
     "academicDifficulties": "array_to_binary_vector",
-    "familyLearningDifficulty": "array_to_binary_vector"
+    "familyLearningDifficulty": "array_to_binary_vector",
+    "selectedTests": "array_to_binary_vector"
   },
   "calculated_fields": {
     "age_months": "Calculate from dateOfBirth at runtime: Math.floor((Date.now() - new Date(dateOfBirth)) / (1000 * 60 * 60 * 24 * 30.44))",

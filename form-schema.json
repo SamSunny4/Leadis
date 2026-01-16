@@ -137,6 +137,15 @@
       "description": "Single selection for family history of ADHD/attention difficulties",
       "ml_encoding": "0=no-history, 1=one-parent, 2=both-parents, 3=siblings, 4=unsure"
     },
+    "selectedTests": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["reading", "writing", "listening", "math", "visual"]
+      },
+      "description": "Array of specific tests selected by user. Empty if user goes through general screening. Contains test IDs if user chooses specific area testing.",
+      "ml_encoding": "Binary vector: [reading, writing, listening, math, visual]. 1=selected, 0=not selected"
+    },
     "dataConsent": {
       "type": "boolean"
     },
