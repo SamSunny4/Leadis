@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Logo from './components/Logo';
 import { 
   Brain, 
   Sparkles, 
@@ -160,7 +161,7 @@ const HeroSection = () => {
       <nav style={styles.nav}>
         <div style={styles.logo}>
           <div style={styles.logoIcon}>
-            <Smile size={28} color={colors.white} />
+            <Logo size={88} />
           </div>
           <span style={styles.logoText}>Leadis</span>
         </div>
@@ -577,9 +578,7 @@ const Footer = () => {
       <div style={styles.footerContent}>
         <div style={styles.footerBrand}>
           <div style={styles.logo}>
-            <div style={styles.logoIconFooter}>
-              <Smile size={24} color={colors.white} />
-            </div>
+            <div style={styles.logoIconFooter}><img src="/logo.svg" alt="Leadis" style={{ width: 76, height: 76 }} /></div>
             <span style={styles.logoTextFooter}>Leadis</span>
           </div>
           <p style={styles.footerTagline}>
@@ -676,10 +675,8 @@ const styles = {
     gap: '12px',
   },
   logoIcon: {
-    width: '44px',
-    height: '44px',
-    borderRadius: '12px',
-    backgroundColor: colors.primary,
+    width: '56px',
+    height: '56px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1231,10 +1228,8 @@ const styles = {
   },
   footerBrand: {},
   logoIconFooter: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '10px',
-    backgroundColor: colors.primary,
+    width: '52px',
+    height: '52px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

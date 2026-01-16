@@ -199,7 +199,13 @@ export default function QuizPage() {
     const handleOptionSelect = async (option) => {
         if (!currentQuestion) return;
         
-        const isCorrect = option === currentQuestion.correctAnswer;
+        let isCorrect = option === currentQuestion.correctAnswer;
+        
+        // Minigames and APD tests are considered correct if completed (any result returned)
+        if (currentQuestion.type === 'minigame' || currentQuestion.type === 'apd-test') {
+            isCorrect = true;
+        }
+
         const category = currentQuestion.category || 'general';
         const difficulty = currentQuestion.difficulty || 'medium';
         
@@ -415,7 +421,7 @@ export default function QuizPage() {
             {/* Header with Timer */}
             <div style={quizStyles.header}>
                 <div style={quizStyles.logo}>
-                    <div style={quizStyles.logoIcon}>L</div>
+                    <div style={quizStyles.logoIcon}><img src="/logo.svg" alt="Leadis" style={{ width: '100%', height: '100%' }} /></div>
                     <span style={quizStyles.logoText}>Leadis</span>
                 </div>
                 <div style={quizStyles.timerContainer}>

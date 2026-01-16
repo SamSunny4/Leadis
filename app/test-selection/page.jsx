@@ -153,7 +153,7 @@ export default function TestSelectionPage() {
         </Link>
         <div style={styles.logo}>
           <div style={styles.logoIcon}>
-            <Smile size={24} color={colors.white} />
+            <img src="/logo.svg" alt="Leadis" style={{ width: 52, height: 52 }} />
           </div>
           <span style={styles.logoText}>Leadis</span>
         </div>
@@ -293,10 +293,8 @@ const styles = {
     gap: '12px',
   },
   logoIcon: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '12px',
-    background: `linear-gradient(135deg, ${colors.primary}, ${colors.primaryDark})`,
+    width: '52px',
+    height: '52px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

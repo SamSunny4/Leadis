@@ -96,7 +96,7 @@ const HeroSection = () => {
     <section style={styles.hero}>
       <nav style={styles.nav}>
         <div style={styles.logo}>
-          <Brain size={32} color="#6366f1" />
+          <img src="/logo.svg" alt="Leadis" style={{ width: 58, height: 58 }} />
           <span style={styles.logoText}>Leadis</span>
         </div>
         <div style={styles.navLinks}>
