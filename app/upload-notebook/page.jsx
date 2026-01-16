@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2, ArrowRight, Camera } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, Loader2, ArrowRight, Camera, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
+import Logo from '../components/Logo';
 import { colors, quizStyles } from '../quiz/styles/quizStyles';
+import { analyzeHandwriting, getReadabilityLabel } from '@/utils/handwritingAnalyzer';
 
 // Reusing FloatingShapes from quiz page for consistency
 const FloatingShapes = () => (
@@ -20,6 +22,9 @@ export default function NotebookUploadPage() {
     const [file, setFile] = useState(null);
     const [analyzing, setAnalyzing] = useState(false);
     const [analysisComplete, setAnalysisComplete] = useState(false);
+    const [analysisProgress, setAnalysisProgress] = useState({ status: '', progress: 0 });
+    const [analysisResult, setAnalysisResult] = useState(null);
+    const [analysisError, setAnalysisError] = useState(null);
 
     const handleDragOver = useCallback((e) => {
         e.preventDefault();
@@ -47,14 +52,22 @@ export default function NotebookUploadPage() {
         }
     }, []);
 
-    const handleAnalyze = () => {
+    const handleAnalyze = async () => {
         if (!file) return;
         setAnalyzing(true);
-        // Mock analysis delay
-        setTimeout(() => {
+        setAnalysisError(null);
+        setAnalysisProgress({ status: 'Preparing analysis...', progress: 0 });
+        
+        try {
+            const result = await analyzeHandwriting(file, setAnalysisProgress);
+            setAnalysisResult(result);
             setAnalyzing(false);
             setAnalysisComplete(true);
-        }, 3000);
+        } catch (error) {
+            console.error('Analysis error:', error);
+            setAnalysisError(error.message || 'Failed to analyze handwriting. Please try again.');
+            setAnalyzing(false);
+        }
     };
 
     return (
@@ -65,7 +78,9 @@ export default function NotebookUploadPage() {
             <header style={quizStyles.header}>
                 <Link href="/" style={{ textDecoration: 'none' }}>
                     <div style={quizStyles.logo}>
-                        <div style={quizStyles.logoIcon}>L</div>
+                        <div style={quizStyles.logoIcon}>
+                            <Logo size={56} />
+                        </div>
                         <span style={quizStyles.logoText}>Leadis</span>
                     </div>
                 </Link>
@@ -225,7 +240,14 @@ Upload a photo of your child’s notebook page. Our system gently analyzes handw
                             {analyzing ? (
                                 <>
                                     <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} />
-                                    Analyzing...
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                        <span>{analysisProgress.status || 'Analyzing...'}</span>
+                                        {analysisProgress.progress > 0 && (
+                                            <span style={{ fontSize: '14px', opacity: 0.8 }}>
+                                                {Math.round(analysisProgress.progress)}%
+                                            </span>
+                                        )}
+                                    </div>
                                 </>
                             ) : (
                                 <>
@@ -234,6 +256,23 @@ Upload a photo of your child’s notebook page. Our system gently analyzes handw
                                 </>
                             )}
                         </button>
+
+                        {/* Error Display */}
+                        {analysisError && (
+                            <div style={{
+                                padding: '16px 24px',
+                                backgroundColor: '#fef2f2',
+                                border: '2px solid #fecaca',
+                                borderRadius: '12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                color: '#dc2626',
+                            }}>
+                                <AlertCircle size={24} />
+                                <span>{analysisError}</span>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div style={{
@@ -245,50 +284,139 @@ Upload a photo of your child’s notebook page. Our system gently analyzes handw
                         boxShadow: '0 20px 50px -15px rgba(0, 0, 0, 0.1)',
                         animation: 'popIn 0.5s ease-out',
                     }}>
-                        <div style={{
-                            width: '100px',
-                            height: '100px',
-                            borderRadius: '50%',
-                            backgroundColor: '#dcfce7',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            margin: '0 auto 24px',
-                        }}>
-                            <CheckCircle size={60} color={colors.primary} />
-                        </div>
-                        <h2 style={{ fontSize: '32px', fontWeight: 800, color: colors.dark, marginBottom: '16px' }}>
-                            Analysis Complete!
-                        </h2>
-                        <p style={{ fontSize: '18px', color: colors.gray, marginBottom: '32px' }}>
-                            We've successfully processed your notebook page.
-                        </p>
+                        {/* Readability Score Display */}
+                        {analysisResult && (() => {
+                            const labelInfo = getReadabilityLabel(analysisResult.readabilityScore);
+                            return (
+                                <>
+                                    <div style={{
+                                        width: '140px',
+                                        height: '140px',
+                                        borderRadius: '50%',
+                                        background: `conic-gradient(${labelInfo.color} ${analysisResult.readabilityScore * 360}deg, #e2e8f0 0deg)`,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        margin: '0 auto 24px',
+                                        position: 'relative',
+                                    }}>
+                                        <div style={{
+                                            width: '110px',
+                                            height: '110px',
+                                            borderRadius: '50%',
+                                            backgroundColor: 'white',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}>
+                                            <span style={{ fontSize: '36px', fontWeight: 800, color: labelInfo.color }}>
+                                                {(analysisResult.readabilityScore * 100).toFixed(0)}%
+                                            </span>
+                                            <span style={{ fontSize: '12px', color: colors.gray, fontWeight: 600 }}>
+                                                READABILITY
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <h2 style={{ fontSize: '28px', fontWeight: 800, color: colors.dark, marginBottom: '8px' }}>
+                                        {labelInfo.label}
+                                    </h2>
+                                    <p style={{ fontSize: '16px', color: colors.gray, marginBottom: '24px' }}>
+                                        Confidence: {(analysisResult.confidence * 100).toFixed(0)}% • 
+                                        {analysisResult.wordCount} words detected • 
+                                        {analysisResult.lineCount} lines
+                                    </p>
+                                </>
+                            );
+                        })()}
+
+                        {/* Findings Section */}
                         <div style={{
                             padding: '24px',
                             backgroundColor: '#f0fdf4',
                             borderRadius: '16px',
                             border: `2px solid ${colors.primaryLight}`,
-                            marginBottom: '32px',
+                            marginBottom: '24px',
                             textAlign: 'left',
                         }}>
-                            <h3 style={{ fontSize: '20px', fontWeight: 700, color: colors.dark, marginBottom: '12px' }}>
-                                Initial Findings:
+                            <h3 style={{ fontSize: '20px', fontWeight: 700, color: colors.dark, marginBottom: '16px' }}>
+                                Analysis Findings:
                             </h3>
                             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <li style={{ display: 'flex', alignItems: 'center', gap: '12px', color: colors.dark }}>
-                                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: colors.primary }} />
-                                    Consistent letter spacing detected
-                                </li>
-                                <li style={{ display: 'flex', alignItems: 'center', gap: '12px', color: colors.dark }}>
-                                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: colors.primary }} />
-                                    Good line alignment
-                                </li>
+                                {analysisResult?.findings?.map((finding, index) => (
+                                    <li key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', color: colors.dark }}>
+                                        <div style={{ 
+                                            width: '8px', 
+                                            height: '8px', 
+                                            borderRadius: '50%', 
+                                            backgroundColor: finding.type === 'positive' ? colors.primary : 
+                                                           finding.type === 'concern' ? '#f59e0b' : '#94a3b8',
+                                            marginTop: '6px',
+                                            flexShrink: 0,
+                                        }} />
+                                        <span>{finding.message}</span>
+                                    </li>
+                                ))}
                             </ul>
                         </div>
+
+                        {/* Metrics Grid */}
+                        {analysisResult?.metrics && (
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(3, 1fr)',
+                                gap: '16px',
+                                marginBottom: '32px',
+                            }}>
+                                <div style={{
+                                    padding: '16px',
+                                    backgroundColor: '#f8fafc',
+                                    borderRadius: '12px',
+                                    textAlign: 'center',
+                                }}>
+                                    <div style={{ fontSize: '24px', fontWeight: 700, color: colors.primary }}>
+                                        {(analysisResult.metrics.ocrConfidence * 100).toFixed(0)}%
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: colors.gray, fontWeight: 600 }}>
+                                        Text Clarity
+                                    </div>
+                                </div>
+                                <div style={{
+                                    padding: '16px',
+                                    backgroundColor: '#f8fafc',
+                                    borderRadius: '12px',
+                                    textAlign: 'center',
+                                }}>
+                                    <div style={{ fontSize: '24px', fontWeight: 700, color: colors.primary }}>
+                                        {(analysisResult.metrics.lineConsistency * 100).toFixed(0)}%
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: colors.gray, fontWeight: 600 }}>
+                                        Line Alignment
+                                    </div>
+                                </div>
+                                <div style={{
+                                    padding: '16px',
+                                    backgroundColor: '#f8fafc',
+                                    borderRadius: '12px',
+                                    textAlign: 'center',
+                                }}>
+                                    <div style={{ fontSize: '24px', fontWeight: 700, color: colors.primary }}>
+                                        {(analysisResult.metrics.textDensity * 100).toFixed(0)}%
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: colors.gray, fontWeight: 600 }}>
+                                        Text Density
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <button
                             onClick={() => {
                                 setFile(null);
                                 setAnalysisComplete(false);
+                                setAnalysisResult(null);
+                                setAnalysisError(null);
                             }}
                             style={{
                                 padding: '16px 32px',
@@ -299,8 +427,12 @@ Upload a photo of your child’s notebook page. Our system gently analyzes handw
                                 fontSize: '18px',
                                 fontWeight: 700,
                                 cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
                             }}
                         >
+                            <RotateCcw size={20} />
                             Upload Another Page
                         </button>
                     </div>
