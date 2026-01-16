@@ -320,9 +320,11 @@ CRITICAL RULES:
 2. Use simple, child-friendly language
 3. Each question has EXACTLY 4 options
 4. correctAnswer MUST exactly match one option
-5. Mix "text" and "visual" types
+5. Only use "text" 
 6. Generate COMPLETELY NEW questions each time (seed: ${randomSeed})
 7. DO NOT use emojis in questions or answers.
+8. Do NOT specify answer on questions.
+9. DO NOT ask for visual questions
 
 Return ONLY the JSON array, no other text.`;
 

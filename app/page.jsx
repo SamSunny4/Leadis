@@ -169,7 +169,7 @@ const HeroSection = () => {
           <a href="#how-it-works" style={styles.navLink}>How It Works</a>
           <a href="#features" style={styles.navLink}>Features</a>
           <a href="#about" style={styles.navLink}>About</a>
-          <Link href="/screening" style={{ textDecoration: 'none' }}>
+          <Link href="/login" style={{ textDecoration: 'none' }}>
             <button style={styles.navButton}>Get Started</button>
           </Link>
         </div>
@@ -200,7 +200,7 @@ const HeroSection = () => {
           </p>
           
           <div style={styles.heroCTA}>
-            <Link href="/screening" style={{ textDecoration: 'none' }}>
+            <Link href="/login" style={{ textDecoration: 'none' }}>
               <motion.button
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.98 }}
@@ -555,7 +555,7 @@ const CTASection = () => {
         <p style={styles.ctaSubtitle}>
           Just 15-20 minutes of fun games, and you'll discover amazing things about how your child learns!
         </p>
-        <Link href="/screening" style={{ textDecoration: 'none' }}>
+        <Link href="/login" style={{ textDecoration: 'none' }}>
           <motion.button
             whileHover={{ scale: 1.08, y: -3 }}
             whileTap={{ scale: 0.95 }}
@@ -565,7 +565,7 @@ const CTASection = () => {
             <ArrowRight size={22} />
           </motion.button>
         </Link>
-        <p style={styles.ctaNote}>No sign-up needed • Highly accurate • Takes 15-20 mins</p>
+        <p style={styles.ctaNote}>Quick login • Highly accurate • Takes 15-20 mins</p>
       </motion.div>
     </section>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -75,7 +75,7 @@ const specificTests = [
   },
 ];
 
-export default function TestSelectionPage() {
+function TestSelectionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedTests, setSelectedTests] = useState([]);
@@ -422,3 +422,11 @@ const styles = {
     margin: 0,
   },
 };
+
+export default function TestSelectionPage() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>Loading...</div>}>
+      <TestSelectionContent />
+    </Suspense>
+  );
+}
