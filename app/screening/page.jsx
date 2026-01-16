@@ -16,7 +16,9 @@ import {
   Users,
   Shield,
   Check,
-  Smile
+  Smile,
+  Loader2,
+  LogOut
 } from 'lucide-react';
 import { 
   getUserData, 
@@ -25,6 +27,8 @@ import {
   initializeUserData,
   clearUserData as clearUserDataStorage
 } from '@/utils/userDataManager';
+import { getUserCredentials, isUserLoggedIn, clearUserCredentials } from '@/utils/userEncryption';
+import { logoutMagic } from '@/utils/magicAuth';
 
 // LocalStorage key for form data (legacy)
 const STORAGE_KEY = 'leadis_screening_form';
@@ -176,20 +180,50 @@ export default function ScreeningForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState(defaultFormData);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [userCredentials, setUserCredentials] = useState(null);
+
+  // Check for user credentials on mount - redirect to login if not available
+  useEffect(() => {
+    const checkAuth = () => {
+      if (!isUserLoggedIn()) {
+        // User not logged in, redirect to login page
+        router.push('/login');
+        return;
+      }
+      
+      // Get user credentials and store them
+      const credentials = getUserCredentials();
+      setUserCredentials(credentials);
+      setIsCheckingAuth(false);
+    };
+    
+    checkAuth();
+  }, [router]);
 
   // Load form data from localStorage on mount
   useEffect(() => {
+    if (isCheckingAuth) return; // Wait for auth check to complete
+    
     try {
       const savedData = localStorage.getItem(STORAGE_KEY);
       if (savedData) {
         const parsedData = JSON.parse(savedData);
         setFormData({ ...defaultFormData, ...parsedData });
       }
+      
+      // Pre-fill child's name from credentials if available
+      if (userCredentials?.childName && !formData.fullName) {
+        setFormData(prev => ({
+          ...prev,
+          fullName: userCredentials.childName
+        }));
+      }
     } catch (error) {
       console.error('Error loading form data:', error);
     }
     setIsLoaded(true);
-  }, []);
+  }, [isCheckingAuth, userCredentials]);
 
   // Save form data to localStorage whenever it changes
   useEffect(() => {
@@ -280,6 +314,23 @@ export default function ScreeningForm() {
     return `${years} years, ${months} months`;
   };
 
+  // Show loading state while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.loadingContainer}>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+          >
+            <Loader2 size={48} color={colors.primary} />
+          </motion.div>
+          <p style={styles.loadingText}>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={styles.container}>
       {/* Header */}
@@ -288,11 +339,31 @@ export default function ScreeningForm() {
           <ArrowLeft size={20} />
           <span>Back to Home</span>
         </Link>
-        <div style={styles.logo}>
-          <div style={styles.logoIcon}>
-            <img src="/logo.svg" alt="Leadis" style={{ width: 76, height: 76 }} />
+        <div style={styles.headerRight}>
+          <div style={styles.logo}>
+            <div style={styles.logoIcon}>
+              <img src="/logo.svg" alt="Leadis" style={{ width: 76, height: 76 }} />
+            </div>
+            <span style={styles.logoText}>Leadis</span>
           </div>
-          <span style={styles.logoText}>Leadis</span>
+          <motion.button
+            onClick={async () => {
+              // Logout from Magic
+              await logoutMagic();
+              
+              // Clear all localStorage
+              localStorage.clear();
+              
+              // Redirect to home page
+              window.location.href = '/';
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={styles.logoutButton}
+          >
+            <LogOut size={18} />
+            <span>Logout</span>
+          </motion.button>
         </div>
       </header>
 
@@ -456,45 +527,47 @@ export default function ScreeningForm() {
                 <Users size={28} color={colors.primary} />
                 <div>
                   <h2 style={styles.sectionTitle}>Caregiver Information</h2>
-                  <p style={styles.sectionSubtitle}>Your contact details</p>
+                  <p style={styles.sectionSubtitle}>Your relationship to the child</p>
                 </div>
               </div>
 
-              <div style={styles.formGrid}>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Relationship to Child</label>
-                  <select
-                    name="relationship"
-                    value={formData.relationship}
-                    onChange={handleChange}
-                    style={styles.select}
-                    required
-                  >
-                    <option value="">Select relationship</option>
-                    <option value="mother">Mother</option>
-                    <option value="father">Father</option>
-                    <option value="grandparent">Grandparent</option>
-                    <option value="guardian">Guardian</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>
-                    <Mail size={16} style={{ marginRight: '8px' }} />
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Enter your email address"
-                    style={styles.input}
-                    required
-                  />
-                </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Relationship to Child</label>
+                <select
+                  name="relationship"
+                  value={formData.relationship}
+                  onChange={handleChange}
+                  style={styles.select}
+                  required
+                >
+                  <option value="">Select relationship</option>
+                  <option value="mother">Mother</option>
+                  <option value="father">Father</option>
+                  <option value="grandparent">Grandparent</option>
+                  <option value="guardian">Guardian</option>
+                  <option value="other">Other</option>
+                </select>
               </div>
+
+              {/* Show logged-in user info */}
+              {userCredentials && (
+                <div style={styles.userInfoBox}>
+                  <div style={styles.userInfoItem}>
+                    <Mail size={18} color={colors.primary} />
+                    <div>
+                      <p style={styles.userInfoLabel}>Email</p>
+                      <p style={styles.userInfoValue}>{userCredentials.email}</p>
+                    </div>
+                  </div>
+                  <div style={styles.userInfoItem}>
+                    <User size={18} color={colors.primary} />
+                    <div>
+                      <p style={styles.userInfoLabel}>Child's Name</p>
+                      <p style={styles.userInfoValue}>{userCredentials.childName}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div style={styles.infoBox}>
                 <Shield size={20} color={colors.primary} />
@@ -1253,6 +1326,25 @@ const styles = {
     color: colors.dark,
     fontFamily: 'var(--font-fredoka), sans-serif',
   },
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '24px',
+  },
+  logoutButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    backgroundColor: colors.white,
+    color: colors.gray,
+    border: `2px solid ${colors.primaryLight}`,
+    padding: '10px 20px',
+    borderRadius: '50px',
+    fontSize: '14px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
   progressContainer: {
     padding: '40px 60px',
     backgroundColor: colors.lightBg,
@@ -1604,5 +1696,43 @@ const styles = {
     fontWeight: 700,
     cursor: 'pointer',
     transition: 'all 0.2s',
+  },
+  loadingContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '100vh',
+    gap: '16px',
+  },
+  loadingText: {
+    fontSize: '16px',
+    color: colors.gray,
+    marginTop: '8px',
+  },
+  userInfoBox: {
+    backgroundColor: colors.lightBg,
+    borderRadius: '16px',
+    padding: '20px',
+    marginBottom: '24px',
+    border: `2px solid ${colors.primaryLight}`,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  userInfoItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  userInfoLabel: {
+    fontSize: '12px',
+    color: colors.gray,
+    marginBottom: '2px',
+  },
+  userInfoValue: {
+    fontSize: '15px',
+    fontWeight: 600,
+    color: colors.dark,
   },
 };

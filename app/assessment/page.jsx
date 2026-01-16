@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -34,7 +34,7 @@ const testNames = {
   'visual': 'Visual Processing Screening',
 };
 
-export default function AssessmentPage() {
+function AssessmentContent() {
   const searchParams = useSearchParams();
   const [selectedTests, setSelectedTests] = useState([]);
 
@@ -266,3 +266,11 @@ const styles = {
     margin: 0,
   },
 };
+
+export default function AssessmentPage() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>Loading...</div>}>
+      <AssessmentContent />
+    </Suspense>
+  );
+}
