@@ -84,10 +84,10 @@ export default function TextQuizContent({
                                     {optionLetters[index]}
                                 </div>
                                 
-                                {/* Hidden Radio */}
+                                {/* Hidden Radio - using ID to prevent duplicate names across re-renders */}
                                 <input
                                     type="radio"
-                                    name={`question-${question.id}`}
+                                    name={`question-${question.id}-${index}`} 
                                     value={option}
                                     checked={isSelected}
                                     onChange={() => onAnswerSelect(option)}
@@ -140,8 +140,8 @@ export default function TextQuizContent({
                 </motion.button>
             </div>
 
-            {/* Celebration animation */}
-            <AnimatePresence>
+            {/* Celebration animation - Removed per user request */}
+            {/* <AnimatePresence>
                 {showCelebration && (
                     <motion.div
                         initial={{ scale: 0, opacity: 0 }}
@@ -158,7 +158,7 @@ export default function TextQuizContent({
                         <Check size={60} color={colors.primary} />
                     </motion.div>
                 )}
-            </AnimatePresence>
+            </AnimatePresence> */}
         </motion.div>
     );
 }

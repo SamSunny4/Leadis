@@ -167,7 +167,7 @@ export default function AudioQuizContent({
                                 </div>
                                 <input
                                     type="radio"
-                                    name={`question-${question.id}`}
+                                    name={`question-${question.id}-${index}`}
                                     value={option}
                                     checked={isSelected}
                                     onChange={() => onAnswerSelect(option)}
@@ -216,8 +216,8 @@ export default function AudioQuizContent({
                 </motion.button>
             </div>
 
-            {/* Celebration */}
-            <AnimatePresence>
+            {/* Celebration - Removed per user request */}
+            {/* <AnimatePresence>
                 {showCelebration && (
                     <motion.div
                         initial={{ scale: 0, opacity: 0 }}
@@ -234,7 +234,7 @@ export default function AudioQuizContent({
                         <Check size={60} color={colors.primary} />
                     </motion.div>
                 )}
-            </AnimatePresence>
+            </AnimatePresence> */}
         </motion.div>
     );
 }
