@@ -1,0 +1,67 @@
+{
+  "total_samples": 2000,
+  "risk_distributions": {
+    "risk_reading": {
+      "mean": 0.3416,
+      "min": 0,
+      "max": 0.9574,
+      "high_risk_count": 479,
+      "low_risk_count": 1005
+    },
+    "risk_writing": {
+      "mean": 0.3311,
+      "min": 0,
+      "max": 0.9078,
+      "high_risk_count": 428,
+      "low_risk_count": 983
+    },
+    "risk_attention": {
+      "mean": 0.298,
+      "min": 0,
+      "max": 1,
+      "high_risk_count": 377,
+      "low_risk_count": 1270
+    },
+    "risk_working_memory": {
+      "mean": 0.3321,
+      "min": 0,
+      "max": 0.826,
+      "high_risk_count": 460,
+      "low_risk_count": 944
+    },
+    "risk_expressive_language": {
+      "mean": 0.2825,
+      "min": 0,
+      "max": 0.9453,
+      "high_risk_count": 304,
+      "low_risk_count": 1235
+    },
+    "risk_receptive_language": {
+      "mean": 0.2705,
+      "min": 0,
+      "max": 0.8912,
+      "high_risk_count": 278,
+      "low_risk_count": 1283
+    },
+    "risk_visual_processing": {
+      "mean": 0.2368,
+      "min": 0,
+      "max": 0.6693,
+      "high_risk_count": 109,
+      "low_risk_count": 1369
+    },
+    "risk_motor_coordination": {
+      "mean": 0.2108,
+      "min": 0,
+      "max": 0.6066,
+      "high_risk_count": 38,
+      "low_risk_count": 1551
+    }
+  },
+  "feature_ranges": {},
+  "age_distribution": {
+    "mean_months": 83.0,
+    "min_months": 36,
+    "max_months": 144
+  }
+}
