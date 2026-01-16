@@ -168,7 +168,9 @@ const HeroSection = () => {
           <a href="#how-it-works" style={styles.navLink}>How It Works</a>
           <a href="#features" style={styles.navLink}>Features</a>
           <a href="#about" style={styles.navLink}>About</a>
-          <button style={styles.navButton}>Get Started</button>
+          <Link href="/screening" style={{ textDecoration: 'none' }}>
+            <button style={styles.navButton}>Get Started</button>
+          </Link>
         </div>
       </nav>
 
