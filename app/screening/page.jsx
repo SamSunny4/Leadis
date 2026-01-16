@@ -42,40 +42,44 @@ const formSteps = [
   { id: 2, title: "Caregiver Info", icon: <Users size={20} /> },
   { id: 3, title: "Medical History", icon: <Heart size={20} /> },
   { id: 4, title: "Education", icon: <BookOpen size={20} /> },
-  { id: 5, title: "Family Background", icon: <Users size={20} /> },
+  { id: 5, title: "Developmental History", icon: <Heart size={20} /> },
   { id: 6, title: "Consent", icon: <Shield size={20} /> },
 ];
 
 // Default form data structure
 const defaultFormData = {
   // Child Details
-  childFirstName: '',
-  childLastName: '',
+  fullName: '',
   dateOfBirth: '',
   gender: '',
   primaryLanguage: 'english',
+  multilingualExposure: '',
   
   // Caregiver Info
-  caregiverName: '',
   relationship: '',
-  phoneNumber: '',
   email: '',
   
   // Medical History
   birthHistory: '',
   medicalConditions: '',
-  currentMedications: '',
   hearingStatus: '',
   visionStatus: '',
   
   // Education
-  currentSetting: '',
-  gradeClass: '',
+  educationalSetting: '',
+  currentGrade: '',
+  mediumOfInstruction: '',
+  learningSupport: [],
+  learningExperience: '',
+  academicDifficulties: [],
   
-  // Family Background
-  familyHistory: '',
-  householdLanguages: '',
-  literacyPractices: '',
+  // Developmental History
+  ageFirstWordMonths: '',
+  ageFirstSentenceMonths: '',
+  historySpeechTherapy: '',
+  historyMotorDelay: '',
+  familyLearningDifficulty: [],
+  familyADHD: '',
   
   // Consent
   dataConsent: false,
@@ -240,32 +244,20 @@ export default function ScreeningForm() {
                 </div>
               </div>
 
-              <div style={styles.formGrid}>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>First Name</label>
-                  <input
-                    type="text"
-                    name="childFirstName"
-                    value={formData.childFirstName}
-                    onChange={handleChange}
-                    placeholder="Enter child's first name"
-                    style={styles.input}
-                    required
-                  />
-                </div>
-
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Last Name</label>
-                  <input
-                    type="text"
-                    name="childLastName"
-                    value={formData.childLastName}
-                    onChange={handleChange}
-                    placeholder="Enter child's last name"
-                    style={styles.input}
-                    required
-                  />
-                </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Child's Full Name</label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder="Enter child's full name"
+                  style={styles.input}
+                  required
+                />
+                <p style={styles.helperText}>
+                  Full name helps personalize the screening experience
+                </p>
               </div>
 
               <div style={styles.formGrid}>
@@ -322,6 +314,25 @@ export default function ScreeningForm() {
                   More languages coming soon
                 </p>
               </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Multilingual Exposure</label>
+                <p style={styles.labelHelper}>Is your child exposed to more than one language?</p>
+                <select
+                  name="multilingualExposure"
+                  value={formData.multilingualExposure}
+                  onChange={handleChange}
+                  style={styles.select}
+                  required
+                >
+                  <option value="">Select exposure level</option>
+                  <option value="0">Monolingual (one language only)</option>
+                  <option value="1">Minimal (occasional exposure)</option>
+                  <option value="2">Moderate (regular but not daily)</option>
+                  <option value="3">High (daily exposure to 2+ languages)</option>
+                  <option value="4">Native bilingual (equal fluency in 2+ languages)</option>
+                </select>
+              </div>
             </div>
           )}
 
@@ -338,19 +349,6 @@ export default function ScreeningForm() {
 
               <div style={styles.formGrid}>
                 <div style={styles.formGroup}>
-                  <label style={styles.label}>Primary Caregiver Name</label>
-                  <input
-                    type="text"
-                    name="caregiverName"
-                    value={formData.caregiverName}
-                    onChange={handleChange}
-                    placeholder="Enter your full name"
-                    style={styles.input}
-                    required
-                  />
-                </div>
-
-                <div style={styles.formGroup}>
                   <label style={styles.label}>Relationship to Child</label>
                   <select
                     name="relationship"
@@ -366,24 +364,6 @@ export default function ScreeningForm() {
                     <option value="guardian">Guardian</option>
                     <option value="other">Other</option>
                   </select>
-                </div>
-              </div>
-
-              <div style={styles.formGrid}>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>
-                    <Phone size={16} style={{ marginRight: '8px' }} />
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    placeholder="Enter your phone number"
-                    style={styles.input}
-                    required
-                  />
                 </div>
 
                 <div style={styles.formGroup}>
@@ -440,26 +420,40 @@ export default function ScreeningForm() {
 
               <div style={styles.formGroup}>
                 <label style={styles.label}>Known Medical Conditions or Diagnoses (Optional)</label>
-                <textarea
-                  name="medicalConditions"
-                  value={formData.medicalConditions}
-                  onChange={handleChange}
-                  placeholder="List any known conditions, diagnoses, or developmental concerns..."
-                  style={styles.textarea}
-                  rows={3}
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Current Medications (Optional)</label>
-                <textarea
-                  name="currentMedications"
-                  value={formData.currentMedications}
-                  onChange={handleChange}
-                  placeholder="List any current medications your child is taking..."
-                  style={styles.textarea}
-                  rows={2}
-                />
+                <div style={styles.checkboxGroup}>
+                  {[
+                    'Autism Spectrum Disorder (ASD)',
+                    'ADHD',
+                    'Dyslexia',
+                    'Speech delay',
+                    'Motor coordination issues',
+                    'Sensory processing disorder',
+                    'Developmental delay',
+                    'Anxiety',
+                    'Other diagnosed condition',
+                    'None',
+                  ].map((item) => (
+                    <label key={item} style={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        name="medicalConditions"
+                        value={item}
+                        checked={formData.medicalConditions.includes(item)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setFormData(prev => ({
+                            ...prev,
+                            medicalConditions: prev.medicalConditions.includes(value)
+                              ? prev.medicalConditions.replace(value + ', ', '').replace(value, '')
+                              : prev.medicalConditions + (prev.medicalConditions ? ', ' : '') + value
+                          }));
+                        }}
+                        style={styles.checkbox}
+                      />
+                      <span style={styles.checkboxText}>{item}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
               <div style={styles.formGrid}>
@@ -506,174 +500,499 @@ export default function ScreeningForm() {
               <div style={styles.sectionHeader}>
                 <BookOpen size={28} color={colors.primary} />
                 <div>
-                  <h2 style={styles.sectionTitle}>Education & Services</h2>
-                  <p style={styles.sectionSubtitle}>Tell us about your child's learning environment</p>
+                  <h2 style={styles.sectionTitle}>Education & Learning Environment</h2>
+                  <p style={styles.sectionSubtitle}>Tell us about your child's educational setting and learning experience</p>
                 </div>
               </div>
 
+              {/* 1. Current Educational Setting */}
               <div style={styles.formGroup}>
                 <label style={styles.label}>Current Educational Setting</label>
+                <p style={styles.labelHelper}>What is your child's current learning environment?</p>
                 <div style={styles.radioGroup}>
                   {[
-                    { value: 'home', label: 'Home (not in formal education)' },
-                    { value: 'daycare', label: 'Daycare / Childcare' },
-                    { value: 'preschool', label: 'Preschool / Pre-K' },
-                    { value: 'kindergarten', label: 'Kindergarten' },
-                    { value: 'elementary', label: 'Elementary School' },
-                    { value: 'other', label: 'Other' },
+                    { value: 'not-enrolled', label: 'Not enrolled / At home' },
+                    { value: 'daycare', label: 'Daycare' },
+                    { value: 'preschool-kindergarten', label: 'Preschool / Kindergarten' },
+                    { value: 'school', label: 'School' },
+                    { value: 'homeschooling', label: 'Homeschooling' },
+                    { value: 'other', label: 'Other (specify)' },
                   ].map((option) => (
                     <label 
                       key={option.value} 
                       style={{
                         ...styles.radioLabel,
-                        border: formData.currentSetting === option.value 
+                        border: formData.educationalSetting === option.value 
                           ? `2px solid ${colors.primary}` 
                           : `2px solid ${colors.primaryLight}`,
-                        boxShadow: formData.currentSetting === option.value 
+                        boxShadow: formData.educationalSetting === option.value 
                           ? `0 0 0 3px ${colors.primary}20, 0 0 15px ${colors.primary}30` 
                           : 'none',
-                        backgroundColor: formData.currentSetting === option.value 
+                        backgroundColor: formData.educationalSetting === option.value 
                           ? colors.lightBg 
                           : colors.white,
                       }}
                     >
                       <input
                         type="radio"
-                        name="currentSetting"
+                        name="educationalSetting"
                         value={option.value}
-                        checked={formData.currentSetting === option.value}
+                        checked={formData.educationalSetting === option.value}
                         onChange={handleChange}
                         style={styles.radio}
                       />
                       <span style={{
                         ...styles.radioText,
-                        fontWeight: formData.currentSetting === option.value ? 600 : 400,
-                        color: formData.currentSetting === option.value ? colors.primaryDark : colors.dark,
+                        fontWeight: formData.educationalSetting === option.value ? 600 : 400,
+                        color: formData.educationalSetting === option.value ? colors.primaryDark : colors.dark,
                       }}>{option.label}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
+              {/* 2. Current Grade or Level (conditional) */}
+              {['preschool-kindergarten', 'school', 'homeschooling'].includes(formData.educationalSetting) && (
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Current Grade or Level</label>
+                  <select
+                    name="currentGrade"
+                    value={formData.currentGrade}
+                    onChange={handleChange}
+                    style={styles.select}
+                  >
+                    <option value="">Select grade/level</option>
+                    <option value="not-applicable">Not applicable</option>
+                    <option value="preschool">Preschool</option>
+                    <option value="kindergarten">Kindergarten</option>
+                    <option value="1">Grade 1</option>
+                    <option value="2">Grade 2</option>
+                    <option value="3">Grade 3</option>
+                    <option value="4">Grade 4</option>
+                    <option value="5">Grade 5</option>
+                    <option value="6+">Grade 6 or above</option>
+                  </select>
+                </div>
+              )}
+
+              {/* 3. Medium of Instruction */}
               <div style={styles.formGroup}>
-                <label style={styles.label}>Grade / Class (if applicable)</label>
-                <input
-                  type="text"
-                  name="gradeClass"
-                  value={formData.gradeClass}
-                  onChange={handleChange}
-                  placeholder="e.g., Grade 1, Pre-K, Nursery"
-                  style={styles.input}
-                />
+                <label style={styles.label}>Medium of Instruction</label>
+                <p style={styles.labelHelper}>What is the primary language of instruction?</p>
+                <div style={styles.radioGroup}>
+                  {[
+                    { value: 'english', label: 'English' },
+                    { value: 'regional', label: 'Regional language' },
+                    { value: 'bilingual', label: 'Bilingual' },
+                    { value: 'other', label: 'Other (specify)' },
+                  ].map((option) => (
+                    <label 
+                      key={option.value} 
+                      style={{
+                        ...styles.radioLabel,
+                        border: formData.mediumOfInstruction === option.value 
+                          ? `2px solid ${colors.primary}` 
+                          : `2px solid ${colors.primaryLight}`,
+                        boxShadow: formData.mediumOfInstruction === option.value 
+                          ? `0 0 0 3px ${colors.primary}20, 0 0 15px ${colors.primary}30` 
+                          : 'none',
+                        backgroundColor: formData.mediumOfInstruction === option.value 
+                          ? colors.lightBg 
+                          : colors.white,
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="mediumOfInstruction"
+                        value={option.value}
+                        checked={formData.mediumOfInstruction === option.value}
+                        onChange={handleChange}
+                        style={styles.radio}
+                      />
+                      <span style={{
+                        ...styles.radioText,
+                        fontWeight: formData.mediumOfInstruction === option.value ? 600 : 400,
+                        color: formData.mediumOfInstruction === option.value ? colors.primaryDark : colors.dark,
+                      }}>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 4. Learning Support or Services Received */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Learning Support or Services Received</label>
+                <p style={styles.labelHelper}>Is your child currently receiving any educational support services?</p>
+                <div style={styles.checkboxGroup}>
+                  {[
+                    { value: 'special-education', label: 'Special education support' },
+                    { value: 'resource-room', label: 'Resource room / remedial classes' },
+                    { value: 'tutoring', label: 'One-on-one tutoring' },
+                    { value: 'speech-support', label: 'Speech or language support (school-based)' },
+                    { value: 'occupational-therapy', label: 'Occupational therapy (school-based)' },
+                    { value: 'no-support', label: 'No additional support' },
+                    { value: 'unsure', label: 'Unsure' },
+                  ].map((option) => {
+                    const isNoSupport = formData.learningSupport.includes('no-support');
+                    const isDisabled = isNoSupport && option.value !== 'no-support';
+                    
+                    return (
+                      <label 
+                        key={option.value} 
+                        style={{
+                          ...styles.checkboxLabel,
+                          opacity: isDisabled ? 0.5 : 1,
+                          cursor: isDisabled ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          name="learningSupport"
+                          value={option.value}
+                          checked={formData.learningSupport.includes(option.value)}
+                          disabled={isDisabled}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData(prev => {
+                              let newValues = [...prev.learningSupport];
+                              
+                              if (value === 'no-support') {
+                                newValues = e.target.checked ? ['no-support'] : [];
+                              } else {
+                                if (e.target.checked) {
+                                  newValues = newValues.filter(v => v !== 'no-support');
+                                  newValues.push(value);
+                                } else {
+                                  newValues = newValues.filter(v => v !== value);
+                                }
+                              }
+                              
+                              return { ...prev, learningSupport: newValues };
+                            });
+                          }}
+                          style={styles.checkbox}
+                        />
+                        <span style={styles.checkboxText}>{option.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 5. Learning Experience at School / Learning Center */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Learning Experience at School / Learning Center</label>
+                <p style={styles.labelHelper}>How does your child generally manage learning tasks compared to peers?</p>
+                <div style={styles.radioGroup}>
+                  {[
+                    { value: 'similar', label: 'Similar to peers' },
+                    { value: 'slightly-slower', label: 'Slightly slower than peers' },
+                    { value: 'much-slower', label: 'Much slower than peers' },
+                    { value: 'highly-variable', label: 'Highly variable (sometimes good, sometimes difficult)' },
+                    { value: 'not-sure', label: 'Not sure' },
+                  ].map((option) => (
+                    <label 
+                      key={option.value} 
+                      style={{
+                        ...styles.radioLabel,
+                        border: formData.learningExperience === option.value 
+                          ? `2px solid ${colors.primary}` 
+                          : `2px solid ${colors.primaryLight}`,
+                        boxShadow: formData.learningExperience === option.value 
+                          ? `0 0 0 3px ${colors.primary}20, 0 0 15px ${colors.primary}30` 
+                          : 'none',
+                        backgroundColor: formData.learningExperience === option.value 
+                          ? colors.lightBg 
+                          : colors.white,
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="learningExperience"
+                        value={option.value}
+                        checked={formData.learningExperience === option.value}
+                        onChange={handleChange}
+                        style={styles.radio}
+                      />
+                      <span style={{
+                        ...styles.radioText,
+                        fontWeight: formData.learningExperience === option.value ? 600 : 400,
+                        color: formData.learningExperience === option.value ? colors.primaryDark : colors.dark,
+                      }}>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 6. Areas of Academic Difficulty (If Any) */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Areas of Academic Difficulty (If Any)</label>
+                <p style={styles.labelHelper}>Which areas does your child currently find challenging?</p>
+                <div style={styles.checkboxGroup}>
+                  {[
+                    { value: 'following-instructions', label: 'Following instructions' },
+                    { value: 'reading', label: 'Reading or letter recognition' },
+                    { value: 'writing', label: 'Writing or fine motor tasks' },
+                    { value: 'math', label: 'Math or number understanding' },
+                    { value: 'attention', label: 'Attention during learning' },
+                    { value: 'memory', label: 'Memory or recall' },
+                    { value: 'none', label: 'None observed' },
+                    { value: 'unsure', label: 'Unsure' },
+                  ].map((option) => {
+                    const isNone = formData.academicDifficulties.includes('none');
+                    const isDisabled = isNone && option.value !== 'none';
+                    
+                    return (
+                      <label 
+                        key={option.value} 
+                        style={{
+                          ...styles.checkboxLabel,
+                          opacity: isDisabled ? 0.5 : 1,
+                          cursor: isDisabled ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          name="academicDifficulties"
+                          value={option.value}
+                          checked={formData.academicDifficulties.includes(option.value)}
+                          disabled={isDisabled}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData(prev => {
+                              let newValues = [...prev.academicDifficulties];
+                              
+                              if (value === 'none') {
+                                newValues = e.target.checked ? ['none'] : [];
+                              } else {
+                                if (e.target.checked) {
+                                  newValues = newValues.filter(v => v !== 'none');
+                                  newValues.push(value);
+                                } else {
+                                  newValues = newValues.filter(v => v !== value);
+                                }
+                              }
+                              
+                              return { ...prev, academicDifficulties: newValues };
+                            });
+                          }}
+                          style={styles.checkbox}
+                        />
+                        <span style={styles.checkboxText}>{option.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <div style={styles.infoBox}>
                 <BookOpen size={20} color={colors.primary} />
-                <p>Understanding your child's current learning environment helps us tailor the screening activities appropriately.</p>
+                <p>Understanding your child's learning environment and experiences helps us provide more accurate screening and appropriate recommendations.</p>
               </div>
             </div>
           )}
 
-          {/* Step 5: Family Background */}
+          {/* Step 5: Developmental History */}
           {currentStep === 5 && (
             <div style={styles.formSection}>
               <div style={styles.sectionHeader}>
-                <Users size={28} color={colors.primary} />
+                <Heart size={28} color={colors.primary} />
                 <div>
-                  <h2 style={styles.sectionTitle}>Family & Environmental Factors</h2>
-                  <p style={styles.sectionSubtitle}>Background information to help interpret results</p>
+                  <h2 style={styles.sectionTitle}>Developmental History</h2>
+                  <p style={styles.sectionSubtitle}>Important milestones and family history</p>
+                </div>
+              </div>
+
+              <div style={styles.formGrid}>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Age of First Word</label>
+                  <p style={styles.labelHelper}>When did your child say their first meaningful word?</p>
+                  <select
+                    name="ageFirstWordMonths"
+                    value={formData.ageFirstWordMonths}
+                    onChange={handleChange}
+                    style={styles.select}
+                  >
+                    <option value="">Select age</option>
+                    <option value="6">6 months or earlier</option>
+                    <option value="9">7-9 months</option>
+                    <option value="12">10-12 months (typical)</option>
+                    <option value="15">13-15 months</option>
+                    <option value="18">16-18 months</option>
+                    <option value="24">19-24 months</option>
+                    <option value="30">25-30 months</option>
+                    <option value="36">31-36 months (3 years)</option>
+                    <option value="48">Over 3 years</option>
+                    <option value="0">Not yet / Don't remember</option>
+                  </select>
+                </div>
+
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Age of First Sentence</label>
+                  <p style={styles.labelHelper}>When did your child combine 2-3 words?</p>
+                  <select
+                    name="ageFirstSentenceMonths"
+                    value={formData.ageFirstSentenceMonths}
+                    onChange={handleChange}
+                    style={styles.select}
+                  >
+                    <option value="">Select age</option>
+                    <option value="12">12 months or earlier</option>
+                    <option value="18">13-18 months</option>
+                    <option value="24">19-24 months (typical)</option>
+                    <option value="30">25-30 months</option>
+                    <option value="36">31-36 months (3 years)</option>
+                    <option value="48">3-4 years</option>
+                    <option value="60">Over 4 years</option>
+                    <option value="0">Not yet / Don't remember</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={styles.formGrid}>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>History of Speech Therapy</label>
+                  <select
+                    name="historySpeechTherapy"
+                    value={formData.historySpeechTherapy}
+                    onChange={handleChange}
+                    style={styles.select}
+                  >
+                    <option value="">Select status</option>
+                    <option value="0">No - Never received</option>
+                    <option value="1">Yes - Currently in therapy</option>
+                    <option value="2">Yes - Completed in the past</option>
+                    <option value="3">Recommended but not started</option>
+                  </select>
+                </div>
+
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>History of Motor Delay</label>
+                  <p style={styles.labelHelper}>Delays in crawling, walking, or coordination</p>
+                  <select
+                    name="historyMotorDelay"
+                    value={formData.historyMotorDelay}
+                    onChange={handleChange}
+                    style={styles.select}
+                  >
+                    <option value="">Select status</option>
+                    <option value="0">No motor concerns</option>
+                    <option value="1">Mild delay (within 3 months)</option>
+                    <option value="2">Moderate delay (3-6 months)</option>
+                    <option value="3">Significant delay (6+ months)</option>
+                    <option value="4">Currently receiving therapy</option>
+                  </select>
                 </div>
               </div>
 
               <div style={styles.formGroup}>
                 <label style={styles.label}>Family History of Learning Difficulties</label>
-                <p style={styles.labelHelper}>Has anyone in your family experienced learning difficulties?</p>
+                <p style={styles.labelHelper}>Has anyone in your immediate family (parents or siblings) had diagnosed or long-standing learning difficulties?</p>
                 <div style={styles.checkboxGroup}>
                   {[
-                    'Reading difficulties / Dyslexia',
-                    'Writing difficulties',
-                    'Math difficulties',
-                    'ADHD / Attention issues',
-                    'Speech or language delays',
-                    'None that I know of',
-                  ].map((item) => (
-                    <label key={item} style={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        name="familyHistory"
-                        value={item}
-                        checked={formData.familyHistory.includes(item)}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setFormData(prev => ({
-                            ...prev,
-                            familyHistory: prev.familyHistory.includes(value)
-                              ? prev.familyHistory.replace(value + ', ', '').replace(value, '')
-                              : prev.familyHistory + (prev.familyHistory ? ', ' : '') + value
-                          }));
+                    { value: 'no-history', label: 'No known family history' },
+                    { value: 'reading', label: 'Reading-related learning difficulties' },
+                    { value: 'writing', label: 'Writing-related learning difficulties' },
+                    { value: 'math', label: 'Math-related learning difficulties' },
+                    { value: 'general', label: 'General learning difficulties' },
+                    { value: 'multiple', label: 'Multiple types of learning difficulties' },
+                    { value: 'unsure', label: 'Unsure / Prefer not to say' },
+                  ].map((option) => {
+                    const isNoHistory = formData.familyLearningDifficulty.includes('no-history');
+                    const isDisabled = isNoHistory && option.value !== 'no-history';
+                    
+                    return (
+                      <label 
+                        key={option.value} 
+                        style={{
+                          ...styles.checkboxLabel,
+                          opacity: isDisabled ? 0.5 : 1,
+                          cursor: isDisabled ? 'not-allowed' : 'pointer',
                         }}
-                        style={styles.checkbox}
-                      />
-                      <span style={styles.checkboxText}>{item}</span>
-                    </label>
-                  ))}
+                      >
+                        <input
+                          type="checkbox"
+                          name="familyLearningDifficulty"
+                          value={option.value}
+                          checked={formData.familyLearningDifficulty.includes(option.value)}
+                          disabled={isDisabled}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData(prev => {
+                              let newValues = [...prev.familyLearningDifficulty];
+                              
+                              if (value === 'no-history') {
+                                // If selecting "no history", clear all others
+                                newValues = e.target.checked ? ['no-history'] : [];
+                              } else {
+                                // If selecting another option, remove "no history"
+                                if (e.target.checked) {
+                                  newValues = newValues.filter(v => v !== 'no-history');
+                                  newValues.push(value);
+                                } else {
+                                  newValues = newValues.filter(v => v !== value);
+                                }
+                              }
+                              
+                              return { ...prev, familyLearningDifficulty: newValues };
+                            });
+                          }}
+                          style={styles.checkbox}
+                        />
+                        <span style={styles.checkboxText}>{option.label}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
               <div style={styles.formGroup}>
-                <label style={styles.label}>Household Languages</label>
-                <textarea
-                  name="householdLanguages"
-                  value={formData.householdLanguages}
-                  onChange={handleChange}
-                  placeholder="Describe the languages spoken in your home and who speaks them..."
-                  style={styles.textarea}
-                  rows={2}
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Literacy Practices at Home</label>
-                <p style={styles.labelHelper}>How often do you read with your child?</p>
+                <label style={styles.label}>Family History of Attention Difficulties</label>
+                <p style={styles.labelHelper}>Has anyone in your immediate family been diagnosed with ADHD or long-term attention difficulties?</p>
                 <div style={styles.radioGroup}>
                   {[
-                    { value: 'daily', label: 'Daily' },
-                    { value: 'few-times-week', label: 'A few times a week' },
-                    { value: 'weekly', label: 'Weekly' },
-                    { value: 'occasionally', label: 'Occasionally' },
-                    { value: 'rarely', label: 'Rarely' },
+                    { value: 'no-history', label: 'No known family history' },
+                    { value: 'one-parent', label: 'Yes – one parent' },
+                    { value: 'both-parents', label: 'Yes – both parents' },
+                    { value: 'siblings', label: 'Yes – sibling(s)' },
+                    { value: 'unsure', label: 'Unsure / Prefer not to say' },
                   ].map((option) => (
                     <label 
                       key={option.value} 
                       style={{
                         ...styles.radioLabel,
-                        border: formData.literacyPractices === option.value 
+                        border: formData.familyADHD === option.value 
                           ? `2px solid ${colors.primary}` 
                           : `2px solid ${colors.primaryLight}`,
-                        boxShadow: formData.literacyPractices === option.value 
+                        boxShadow: formData.familyADHD === option.value 
                           ? `0 0 0 3px ${colors.primary}20, 0 0 15px ${colors.primary}30` 
                           : 'none',
-                        backgroundColor: formData.literacyPractices === option.value 
+                        backgroundColor: formData.familyADHD === option.value 
                           ? colors.lightBg 
                           : colors.white,
                       }}
                     >
                       <input
                         type="radio"
-                        name="literacyPractices"
+                        name="familyADHD"
                         value={option.value}
-                        checked={formData.literacyPractices === option.value}
+                        checked={formData.familyADHD === option.value}
                         onChange={handleChange}
                         style={styles.radio}
                       />
                       <span style={{
                         ...styles.radioText,
-                        fontWeight: formData.literacyPractices === option.value ? 600 : 400,
-                        color: formData.literacyPractices === option.value ? colors.primaryDark : colors.dark,
+                        fontWeight: formData.familyADHD === option.value ? 600 : 400,
+                        color: formData.familyADHD === option.value ? colors.primaryDark : colors.dark,
                       }}>{option.label}</span>
                     </label>
                   ))}
                 </div>
+              </div>
+
+              <div style={styles.infoBox}>
+                <Heart size={20} color={colors.primary} />
+                <p>Developmental milestones and family history help us understand potential genetic and environmental factors that may influence learning patterns.</p>
               </div>
             </div>
           )}
