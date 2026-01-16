@@ -17,8 +17,15 @@ import {
   Check,
   Smile
 } from 'lucide-react';
+import { 
+  getUserData, 
+  saveUserData, 
+  mapScreeningFormToUserData,
+  initializeUserData,
+  clearUserData as clearUserDataStorage
+} from '@/utils/userDataManager';
 
-// LocalStorage key for form data
+// LocalStorage key for form data (legacy)
 const STORAGE_KEY = 'leadis_screening_form';
 
 // ML Encoding Map
@@ -186,8 +193,13 @@ export default function ScreeningForm() {
   useEffect(() => {
     if (isLoaded) {
       try {
+        // Save to legacy format for backward compatibility
         const encodedData = encodeFormDataForML(formData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(encodedData));
+        
+        // Save to new user-schema format
+        const userData = mapScreeningFormToUserData(formData);
+        saveUserData(userData);
       } catch (error) {
         console.error('Error saving form data:', error);
       }
@@ -223,19 +235,26 @@ export default function ScreeningForm() {
       selectedTests: []
     };
     
-    // Encode form data for ML processing
+    // Encode form data for ML processing (legacy)
     const encodedData = encodeFormDataForML(formDataWithReset);
     
-    // Save final form data with timestamp and ML encodings
+    // Save final form data with timestamp and ML encodings (legacy)
     const submissionData = {
       ...encodedData,
       submittedAt: new Date().toISOString(),
     };
     
     localStorage.setItem(STORAGE_KEY, JSON.stringify(submissionData));
-    console.log('Form submitted (ML-encoded):', submissionData);
+    
+    // Save to new user-schema format
+    const userData = mapScreeningFormToUserData(formDataWithReset);
+    saveUserData(userData);
+    
+    console.log('Form submitted (ML-encoded - legacy):', submissionData);
+    console.log('Form submitted (user-schema format):', userData);
     console.log('Original form data:', formDataWithReset);
     // TODO: Navigate to assessment page
+    clearUserDataStorage(); // Clear user-schema data
   };
 
   // Clear saved form data

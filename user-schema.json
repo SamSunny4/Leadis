@@ -1,0 +1,380 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "User Assessment Data Schema",
+  "description": "Schema for storing user assessment data in local storage",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "description": "Unique identifier for the user"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last updated timestamp"
+    },
+    "demographicInfo": {
+      "type": "object",
+      "properties": {
+        "primary_language": {
+          "type": "string",
+          "enum": ["english"],
+          "default": "english"
+        },
+        "schooling_type": {
+          "type": "string",
+          "enum": ["not-enrolled", "daycare", "preschool-kindergarten", "school", "homeschooling", "other"],
+          "default": null
+        },
+        "gender": {
+          "type": "string",
+          "enum": ["male", "female", "other", "prefer-not-to-say"],
+          "default": null
+        },
+        "age_months": {
+          "type": "number",
+          "minimum": 36,
+          "maximum": 144,
+          "default": null
+        }
+      }
+    },
+    "developmentalHistory": {
+      "type": "object",
+      "properties": {
+        "multilingualExposure": {
+          "type": "string",
+          "enum": ["Monolingual", "Minimal", "Moderate", "High", "Native bilingual"],
+          "default": null
+        },
+        "multilingual_exposure": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 4,
+          "default": null
+        },
+        "birthHistory": {
+          "type": "string",
+          "enum": ["full-term", "preterm", "nicu", "complications", "unknown"],
+          "default": null
+        },
+        "age_first_word_months": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 48,
+          "default": null
+        },
+        "age_first_sentence_months": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": null
+        },
+        "history_speech_therapy": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3,
+          "default": 0
+        },
+        "history_motor_delay": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 4,
+          "default": 0
+        }
+      }
+    },
+    "sensoryHealth": {
+      "type": "object",
+      "properties": {
+        "hearingStatus": {
+          "type": "string",
+          "enum": ["normal", "tested-normal", "concerns", "diagnosed", "not-tested"],
+          "default": null
+        },
+        "hearing_concerns": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        "visionStatus": {
+          "type": "string",
+          "enum": ["normal", "tested-normal", "glasses", "concerns", "not-tested"],
+          "default": null
+        },
+        "vision_concerns": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        }
+      }
+    },
+    "familyHistory": {
+      "type": "object",
+      "properties": {
+        "family_learning_difficulty": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        "family_adhd": {
+          "type": "string",
+          "enum": ["no-history", "one-parent", "both-parents", "siblings", "unsure"],
+          "default": "no-history"
+        }
+      }
+    },
+    "assessmentMetrics": {
+      "type": "object",
+      "properties": {
+        "responseMetrics": {
+          "type": "object",
+          "properties": {
+            "mean_response_accuracy": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            },
+            "response_accuracy_std": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            },
+            "mean_response_time_ms": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 60000,
+              "default": null
+            },
+            "response_time_std_ms": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 30000,
+              "default": null
+            }
+          }
+        },
+        "taskPerformance": {
+          "type": "object",
+          "properties": {
+            "task_completion_rate": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            },
+            "task_abandonment_count": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 50,
+              "default": 0
+            },
+            "instruction_follow_accuracy": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            }
+          }
+        },
+        "attentionMetrics": {
+          "type": "object",
+          "properties": {
+            "mean_focus_duration_sec": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 600,
+              "default": null
+            },
+            "attention_dropoff_slope": {
+              "type": "number",
+              "minimum": -1.0,
+              "maximum": 1.0,
+              "default": null
+            },
+            "attention_span_average": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 600,
+              "default": null
+            },
+            "random_interaction_rate": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            }
+          }
+        },
+        "memoryMetrics": {
+          "type": "object",
+          "properties": {
+            "max_sequence_length": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 20,
+              "default": null
+            },
+            "sequence_order_error_rate": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            }
+          }
+        },
+        "visualProcessing": {
+          "type": "object",
+          "properties": {
+            "visual_search_time_ms": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 30000,
+              "default": null
+            },
+            "left_right_confusion_rate": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            },
+            "pref_visual": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            }
+          }
+        },
+        "auditoryProcessing": {
+          "type": "object",
+          "properties": {
+            "auditory_processing_accuracy": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            },
+            "average_audio_replays": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10,
+              "default": 0
+            },
+            "pref_auditory": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            }
+          }
+        },
+        "speechMetrics": {
+          "type": "object",
+          "properties": {
+            "speech_rate_wpm": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 200,
+              "default": null
+            },
+            "hesitation_frequency": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 50,
+              "default": 0
+            }
+          }
+        },
+        "readingMetrics": {
+          "type": "object",
+          "properties": {
+            "reading_speed_wpm": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 300,
+              "default": null
+            },
+            "reading_accuracy": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            },
+            "letter_reversal_rate": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            },
+            "audio_text_mismatch_rate": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": null
+            }
+          }
+        }
+      }
+    },
+    "riskAssessment": {
+      "type": "object",
+      "properties": {
+        "risk_reading": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": null
+        },
+        "risk_writing": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": null
+        },
+        "risk_attention": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": null
+        },
+        "risk_working_memory": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": null
+        },
+        "risk_expressive_language": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": null
+        },
+        "risk_receptive_language": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": null
+        },
+        "risk_visual_processing": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": null
+        },
+        "risk_motor_coordination": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": null
+        }
+      }
+    }
+  },
+  "required": ["userId", "timestamp"]
+}
