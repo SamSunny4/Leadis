@@ -11,6 +11,7 @@ export const QuestionType = {
     AUDIO: 'audio',
     VISUAL: 'visual',
     MINIGAME: 'minigame',
+    APD_TEST: 'apd-test',
 };
 
 /**
@@ -97,6 +98,8 @@ export function getValidator(type) {
             return validateVisualQuestion;
         case QuestionType.MINIGAME:
             return validateMinigameQuestion;
+        case QuestionType.APD_TEST:
+            return validateBaseQuestion; // APD test only needs base validation
         default:
             return validateTextQuestion; // Default to text validation
     }

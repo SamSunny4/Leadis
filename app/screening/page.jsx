@@ -290,7 +290,7 @@ export default function ScreeningForm() {
         </Link>
         <div style={styles.logo}>
           <div style={styles.logoIcon}>
-            <Smile size={24} color={colors.white} />
+            <img src="/logo.svg" alt="Leadis" style={{ width: 76, height: 76 }} />
           </div>
           <span style={styles.logoText}>Leadis</span>
         </div>
@@ -1241,10 +1241,8 @@ const styles = {
     gap: '10px',
   },
   logoIcon: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '10px',
-    backgroundColor: colors.primary,
+    width: '52px',
+    height: '52px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

@@ -6,6 +6,7 @@ import TextQuizContent from './TextQuizContent';
 import AudioQuizContent from './AudioQuizContent';
 import VisualQuizContent from './VisualQuizContent';
 import MinigameQuizContent from './MinigameQuizContent';
+import APDQuizContent from './APDQuizContent';
 
 /**
  * QuizContent - Main router/factory component for quiz content
@@ -47,6 +48,9 @@ export default function QuizContent({
 
         case QuestionType.MINIGAME:
             return <MinigameQuizContent {...commonProps} />;
+
+        case QuestionType.APD_TEST:
+            return <APDQuizContent {...commonProps} />;
 
         case QuestionType.TEXT:
         default:

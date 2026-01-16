@@ -1,6 +1,6 @@
 'use client';
 
-const GEMINI_API_KEY = 'AIzaSyDEoYLdx22R_ZbJoMgayVgTMriHkHFm7uc';
+const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
 // LocalStorage keys
@@ -328,6 +328,12 @@ Return ONLY the JSON array, no other text.`;
 
     try {
         console.log('Generating personalized questions for:', { age, gradeLevel, focusAreas });
+    
+     // TEMPORARY: Bypass API to save quota
+        console.log('⚠️ API GENERATION DISABLED - Using fallback questions');
+        const questions = getFallbackQuestions(age, gradeLevel, focusAreas);
+
+        /* API CALL COMMENTED OUT
         
         const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
             method: 'POST',
@@ -371,7 +377,7 @@ Return ONLY the JSON array, no other text.`;
         cleanedContent = cleanedContent.trim();
 
         const questions = JSON.parse(cleanedContent);
-        
+        */
         if (!Array.isArray(questions)) {
             throw new Error('Response is not an array');
         }
@@ -379,7 +385,7 @@ Return ONLY the JSON array, no other text.`;
         // Validate and structure questions
         const validatedQuestions = questions.map((q, index) => ({
             id: index + 1,
-            type: ['text', 'audio', 'visual', 'minigame'].includes(q.type) ? q.type : 'text',
+            type: ['text', 'audio', 'visual', 'minigame', 'apd-test'].includes(q.type) ? q.type : 'text',
             category: q.category || 'general',
             skill_tested: q.skill_tested || 'cognitive',
             question: q.question || 'Question not available',
@@ -390,7 +396,116 @@ Return ONLY the JSON array, no other text.`;
             difficulty: q.difficulty || 'medium'
         }));
 
-        console.log(`Generated ${validatedQuestions.length} personalized questions`);
+        // Insert Minigames and individual APD Tests shuffled with questions
+        try {
+            const minigame1 = {
+                id: 'mg1',
+                type: 'minigame',
+                gameType: 'find-character',
+                category: 'attention',
+                skill_tested: 'Visual Attention',
+                question: 'Find the hidden character!',
+                options: ['Completed'],
+                correctAnswer: 'Completed',
+                difficulty: 'medium',
+                config: { targetScore: 3 }
+            };
+
+            const minigame2 = {
+                id: 'mg2',
+                type: 'minigame',
+                gameType: 'sequence',
+                category: 'memory',
+                skill_tested: 'Working Memory',
+                question: 'Watch the pattern and repeat it!',
+                options: ['Completed'],
+                correctAnswer: 'Completed',
+                difficulty: 'medium',
+                config: {}
+            };
+
+            // Individual APD tests to be shuffled with questions
+            const apdDiscrimination = {
+                id: 'apd-disc',
+                type: 'apd-test',
+                apdTestType: 'discrimination',
+                category: 'processing',
+                skill_tested: 'Sound Discrimination',
+                question: 'Sound Discrimination Test',
+                options: ['Completed'],
+                correctAnswer: 'Completed',
+                difficulty: 'medium',
+                config: {}
+            };
+
+            const apdMemory = {
+                id: 'apd-mem',
+                type: 'apd-test',
+                apdTestType: 'memory',
+                category: 'processing',
+                skill_tested: 'Auditory Memory',
+                question: 'Auditory Memory Test',
+                options: ['Completed'],
+                correctAnswer: 'Completed',
+                difficulty: 'medium',
+                config: {}
+            };
+
+            const apdWords = {
+                id: 'apd-words',
+                type: 'apd-test',
+                apdTestType: 'words',
+                category: 'processing',
+                skill_tested: 'Word Recognition',
+                question: 'Word Recognition Test',
+                options: ['Completed'],
+                correctAnswer: 'Completed',
+                difficulty: 'medium',
+                config: {}
+            };
+
+            // Insert components at different positions to break up questions
+            // Pattern: Q1, Q2, Q3, Minigame1, Q4, Q5, APD-Disc, Q6, Q7, APD-Memory, Q8, Q9, Minigame2, Q10, APD-Words
+            if (validatedQuestions.length >= 3) {
+                validatedQuestions.splice(3, 0, minigame1); // Insert as 4th
+            } else {
+                validatedQuestions.push(minigame1);
+            }
+
+            if (validatedQuestions.length >= 6) {
+                validatedQuestions.splice(6, 0, apdDiscrimination); // Insert as 7th
+            } else {
+                validatedQuestions.push(apdDiscrimination);
+            }
+
+            if (validatedQuestions.length >= 9) {
+                validatedQuestions.splice(9, 0, apdMemory); // Insert as 10th
+            } else {
+                validatedQuestions.push(apdMemory);
+            }
+
+            if (validatedQuestions.length >= 12) {
+                validatedQuestions.splice(12, 0, minigame2); // Insert as 13th
+            } else {
+                validatedQuestions.push(minigame2);
+            }
+
+            if (validatedQuestions.length >= 14) {
+                validatedQuestions.splice(14, 0, apdWords); // Insert as 15th
+            } else {
+                validatedQuestions.push(apdWords);
+            }
+
+            // Re-assign IDs sequentially
+            validatedQuestions.forEach((q, i) => {
+                q.id = i + 1;
+            });
+
+        } catch (err) {
+            console.error('Error injecting minigames and APD tests:', err);
+        }
+
+        console.log(`Generated ${validatedQuestions.length} personalized questions (including minigames and APD tests)`);
         
         // Save to localStorage
         saveQuestions(validatedQuestions);
@@ -431,6 +546,10 @@ Return ONLY valid JSON:
 }`;
 
     try {
+        // TEMPORARY: Return null to prevent API calls for follow-ups
+        return null; 
+        
+        /* API CALL COMMENTED OUT
         const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -451,6 +570,7 @@ Return ONLY valid JSON:
         }
         
         return JSON.parse(content);
+        */
     } catch (error) {
         console.error('Error getting easier question:', error);
         return null;
