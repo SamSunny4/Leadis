@@ -40,7 +40,7 @@
         "difficulty": "easy"
     },
     {
-        "id": 5,
+        "id": 7,
         "type": "text",
         "category": "attention",
         "skill_tested": "multi_step_processing",
@@ -50,7 +50,7 @@
         "difficulty": "medium"
     },
     {
-        "id": 6,
+        "id": 8,
         "type": "text",
         "category": "memory",
         "skill_tested": "sequence_recall",
@@ -70,7 +70,7 @@
         "difficulty": "easy"
     },
     {
-        "id": 8,
+        "id": 10,
         "type": "text",
         "category": "visual-spatial",
         "skill_tested": "spatial_reasoning",
@@ -80,7 +80,7 @@
         "difficulty": "medium"
     },
     {
-        "id": 9,
+        "id": 11,
         "type": "text",
         "category": "dyslexia",
         "skill_tested": "word_recognition",
@@ -90,7 +90,7 @@
         "difficulty": "medium"
     },
     {
-        "id": 10,
+        "id": 12,
         "type": "text",
         "category": "processing",
         "skill_tested": "categorization",

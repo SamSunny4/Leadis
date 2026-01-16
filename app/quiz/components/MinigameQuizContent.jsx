@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Gamepad2, Move, Grid, ListOrdered, Puzzle, Sparkles, Trophy, Check, Play } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Gamepad2, Move, Grid, ListOrdered, Puzzle, Sparkles, Trophy, Check, Play, Search } from 'lucide-react';
 import { colors, contentStyles } from '../styles/quizStyles';
 import { MinigameType } from '../schema/quizSchema';
+import SequenceMemoryGame from './minigames/SequenceMemoryGame';
+import FindCharacterGame from './minigames/FindCharacterGame';
 
 // Game icon components
 const GameIcons = {
@@ -12,6 +14,7 @@ const GameIcons = {
     [MinigameType.MATCHING]: Grid,
     [MinigameType.SEQUENCE]: ListOrdered,
     [MinigameType.PUZZLE]: Puzzle,
+    [MinigameType.FIND_CHARACTER]: Search,
     default: Gamepad2,
 };
 
@@ -20,6 +23,7 @@ const gameTitles = {
     [MinigameType.MATCHING]: 'Match the Pairs',
     [MinigameType.SEQUENCE]: 'Put in Order',
     [MinigameType.PUZZLE]: 'Solve the Puzzle',
+    [MinigameType.FIND_CHARACTER]: 'Find the Character',
     default: 'Fun Activity',
 };
 
@@ -62,7 +66,7 @@ export default function MinigameQuizContent({
             style={contentStyles.questionCard}
         >
             <div style={contentStyles.cardDecoration} />
-            
+
             <div style={contentStyles.questionArea}>
                 <div style={contentStyles.questionBox}>
                     <span style={contentStyles.questionNumber}>
@@ -75,19 +79,19 @@ export default function MinigameQuizContent({
                 </div>
 
                 {/* Fun Minigame Container */}
-                <motion.div 
+                <motion.div
                     style={contentStyles.minigameContainer}
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.2 }}
                 >
                     <motion.div
-                        animate={{ 
+                        animate={{
                             rotate: isAnimating ? [0, -10, 10, -10, 10, 0] : 0,
                             scale: isAnimating ? [1, 1.2, 1] : 1,
                         }}
                         transition={{ duration: 0.5 }}
-                        style={{ 
+                        style={{
                             width: '80px',
                             height: '80px',
                             borderRadius: '50%',
@@ -99,7 +103,7 @@ export default function MinigameQuizContent({
                     >
                         <GameIcon size={40} color="white" />
                     </motion.div>
-                    
+
                     <h3 style={{
                         fontSize: '28px',
                         fontWeight: 700,
@@ -110,7 +114,7 @@ export default function MinigameQuizContent({
                     }}>
                         {getGameTitle()}
                     </h3>
-                    
+
                     <p style={contentStyles.minigameInstruction}>
                         {question.config?.instructions || 'Complete the activity below!'}
                     </p>
@@ -137,11 +141,11 @@ export default function MinigameQuizContent({
                                 style={{ textAlign: 'center' }}
                             >
                                 <motion.div
-                                    animate={{ 
+                                    animate={{
                                         rotate: [0, 360],
                                         scale: [1, 1.2, 1],
                                     }}
-                                    transition={{ 
+                                    transition={{
                                         rotate: { duration: 1 },
                                         scale: { duration: 0.5, delay: 0.5 }
                                     }}
@@ -158,8 +162,8 @@ export default function MinigameQuizContent({
                                 >
                                     <Trophy size={40} color="white" />
                                 </motion.div>
-                                <p style={{ 
-                                    fontWeight: 700, 
+                                <p style={{
+                                    fontWeight: 700,
                                     fontSize: '20px',
                                     color: colors.primary,
                                     fontFamily: 'var(--font-fredoka), sans-serif',
@@ -167,6 +171,16 @@ export default function MinigameQuizContent({
                                     Great Job!
                                 </p>
                             </motion.div>
+                        ) : question.gameType === MinigameType.SEQUENCE ? (
+                            <SequenceMemoryGame
+                                onComplete={handleGameComplete}
+                                config={question.config}
+                            />
+                        ) : question.gameType === MinigameType.FIND_CHARACTER ? (
+                            <FindCharacterGame
+                                onComplete={handleGameComplete}
+                                config={question.config}
+                            />
                         ) : (
                             <motion.button
                                 onClick={() => handleGameComplete('completed')}

@@ -21,6 +21,7 @@ export const MinigameType = {
     MATCHING: 'matching',
     SEQUENCE: 'sequence',
     PUZZLE: 'puzzle',
+    FIND_CHARACTER: 'find-character',
 };
 
 /**
