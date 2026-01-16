@@ -12,6 +12,7 @@ export const QuestionType = {
     VISUAL: 'visual',
     MINIGAME: 'minigame',
     APD_TEST: 'apd-test',
+    INTERACTIVE_ASSESSMENT: 'interactive-assessment',
 };
 
 /**

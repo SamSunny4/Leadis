@@ -13,7 +13,7 @@ import {
     getUserScreeningData
 } from './services/questionManager';
 import QuizContent from './components/QuizContent';
-import { normalizeQuestion } from './schema/quizSchema';
+import { normalizeQuestion, QuestionType } from './schema/quizSchema';
 import { colors, quizStyles } from './styles/quizStyles';
 
 // Fun floating shapes for background
@@ -203,7 +203,22 @@ export default function QuizPage() {
                 // ALWAYS force regenerate on initial load (don't use cache on mount)
                 clearStoredQuestions(); // Clear any old cached questions
                 const generatedQuestions = await generatePersonalizedQuestions(true); // Force new generation
-                const normalized = generatedQuestions.map(normalizeQuestion);
+                let normalized = generatedQuestions.map(normalizeQuestion);
+                
+                // Inject Interactive Assessment after listening test
+                const apdIndex = normalized.findIndex(q => q.type === QuestionType.APD_TEST);
+                const interactiveQuestion = {
+                    id: 'interactive-assessment-1',
+                    type: QuestionType.INTERACTIVE_ASSESSMENT,
+                    question: 'Interactive Assessment',
+                };
+                
+                if (apdIndex !== -1) {
+                    normalized.splice(apdIndex + 1, 0, interactiveQuestion);
+                } else {
+                    normalized.push(interactiveQuestion);
+                }
+                
                 setQuestions(normalized);
                 
                 console.log('Quiz initialized with', normalized.length, 'NEW questions');
@@ -226,7 +241,22 @@ export default function QuizPage() {
         
         try {
             const generatedQuestions = await generatePersonalizedQuestions(true);
-            const normalized = generatedQuestions.map(normalizeQuestion);
+            let normalized = generatedQuestions.map(normalizeQuestion);
+            
+            // Inject Interactive Assessment after listening test
+            const apdIndex = normalized.findIndex(q => q.type === QuestionType.APD_TEST);
+            const interactiveQuestion = {
+                id: 'interactive-assessment-1',
+                type: QuestionType.INTERACTIVE_ASSESSMENT,
+                question: 'Interactive Assessment',
+            };
+            
+            if (apdIndex !== -1) {
+                normalized.splice(apdIndex + 1, 0, interactiveQuestion);
+            } else {
+                normalized.push(interactiveQuestion);
+            }
+            
             setQuestions(normalized);
         } catch (error) {
             console.error('Failed to regenerate questions:', error);
