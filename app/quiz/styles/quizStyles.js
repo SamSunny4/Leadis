@@ -598,6 +598,19 @@ export const contentStyles = {
     wiggleAnimation: {
         animation: 'wiggle 0.5s ease',
     },
+    // Upload Page Styles
+    uploadZone: {
+        width: '100%',
+        minHeight: '300px',
+        borderRadius: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        position: 'relative',
+    },
 };
 
 // CSS Keyframes (to be added to globals.css)
