@@ -10,35 +10,31 @@ import MinigameQuizContent from './MinigameQuizContent';
 /**
  * QuizContent - Main router/factory component for quiz content
  * Dynamically renders the appropriate content component based on question type
- * 
- * @param {Object} props
- * @param {Object} props.question - The question object with type field
- * @param {*} props.selectedAnswer - Currently selected answer
- * @param {Function} props.onAnswerSelect - Callback when answer is selected
- * @param {Function} props.onNext - Callback for next button
- * @param {Function} props.onPrev - Callback for previous button
- * @param {boolean} props.isFirst - Whether this is the first question
- * @param {boolean} props.isLast - Whether this is the last question
+ * Enhanced with kid-friendly props for animations and celebrations
  */
 export default function QuizContent({
     question,
+    questionNumber,
     selectedAnswer,
     onAnswerSelect,
     onNext,
     onPrev,
     isFirst,
     isLast,
+    showCelebration,
 }) {
     const questionType = getQuestionType(question);
 
     const commonProps = {
         question,
+        questionNumber,
         selectedAnswer,
         onAnswerSelect,
         onNext,
         onPrev,
         isFirst,
         isLast,
+        showCelebration,
     };
 
     // Route to appropriate content renderer based on type
