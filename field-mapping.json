@@ -247,6 +247,24 @@
       "attribute": "attention_span_average",
       "dataType": "numerical",
       "valueRange": { "min": 0, "max": 600 }
+    },
+    {
+      "attribute": "hand_laterality_accuracy",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 },
+      "description": "Accuracy in identifying and using correct hand (left vs right)"
+    },
+    {
+      "attribute": "finger_counting_accuracy",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 },
+      "description": "Accuracy in showing specific number of fingers on command"
+    },
+    {
+      "attribute": "hand_position_accuracy",
+      "dataType": "numerical",
+      "valueRange": { "min": 0.0, "max": 1.0 },
+      "description": "Accuracy in positioning hands in specified locations"
     }
   ],
   "output_targets": [
@@ -267,11 +285,6 @@
     },
     {
       "attribute": "risk_working_memory",
-      "dataType": "numerical",
-      "valueRange": { "min": 0.0, "max": 1.0 }
-    },
-    {
-      "attribute": "risk_expressive_language",
       "dataType": "numerical",
       "valueRange": { "min": 0.0, "max": 1.0 }
     },

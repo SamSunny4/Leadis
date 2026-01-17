@@ -90,6 +90,11 @@ export default function FindCharacterGame({ onComplete, config }) {
     const [targetIndex, setTargetIndex] = useState(null);
     const [gridSize, setGridSize] = useState(25); // 5x5 grid
     const [shakingIndex, setShakingIndex] = useState(null);
+    const [startTime, setStartTime] = useState(null);
+    const [searchTimes, setSearchTimes] = useState([]);
+    const [currentSearchStart, setCurrentSearchStart] = useState(null);
+    const [totalClicks, setTotalClicks] = useState(0);
+    const [incorrectClicks, setIncorrectClicks] = useState(0);
 
     // Generate random distractors for the grid
     // Re-generate whenever score changes to create "visual noise" and randomization
@@ -105,30 +110,55 @@ export default function FindCharacterGame({ onComplete, config }) {
     const startGame = () => {
         setScore(0);
         setGameState('playing');
+        setStartTime(Date.now());
+        setSearchTimes([]);
+        setTotalClicks(0);
+        setIncorrectClicks(0);
         moveTarget();
     };
 
     const moveTarget = useCallback(() => {
         const newIndex = Math.floor(Math.random() * gridSize);
         setTargetIndex(newIndex);
+        setCurrentSearchStart(Date.now());
     }, [gridSize]);
 
     const handleTileClick = (index) => {
         if (gameState !== 'playing') return;
 
+        setTotalClicks(prev => prev + 1);
+
         if (index === targetIndex) {
             // Found the target!
+            const searchTime = currentSearchStart ? Date.now() - currentSearchStart : 0;
+            setSearchTimes(prev => [...prev, searchTime]);
+            
             const newScore = score + 1;
             setScore(newScore);
 
             if (newScore >= targetScore) {
                 setGameState('success');
-                setTimeout(() => onComplete('completed'), 1500);
+                const totalTime = Date.now() - startTime;
+                const avgSearchTime = searchTimes.length > 0 
+                    ? searchTimes.reduce((a, b) => a + b, searchTime) / (searchTimes.length + 1)
+                    : searchTime;
+                
+                setTimeout(() => onComplete({
+                    gameType: 'find-character',
+                    score: newScore,
+                    maxScore: targetScore,
+                    accuracy: newScore / targetScore,
+                    completionTime: totalTime,
+                    searchTime: avgSearchTime,
+                    totalClicks: totalClicks + 1,
+                    incorrectClicks: incorrectClicks,
+                }), 1500);
             } else {
                 moveTarget();
             }
         } else {
             // Clicked a distractor
+            setIncorrectClicks(prev => prev + 1);
             setShakingIndex(index);
             setTimeout(() => setShakingIndex(null), 500);
         }

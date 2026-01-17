@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft,
+  ArrowRight,
   Mail,
   User,
   Sparkles,
@@ -86,12 +87,37 @@ export default function LoginPage() {
   const [step, setStep] = useState('form'); // 'form', 'sending', 'sent', 'verifying'
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasExistingData, setHasExistingData] = useState(false);
+  const [isCheckingData, setIsCheckingData] = useState(true);
 
-  // Check if user is already logged in
+  // Check if user is already logged in and has existing data
   useEffect(() => {
-    if (isUserLoggedIn()) {
-      router.push('/screening');
-    }
+    const checkExistingData = async () => {
+      if (isUserLoggedIn()) {
+        // User is logged in, check if they have data in the server
+        try {
+          const { getUserCredential, getFlaskSession } = await import('@/utils/flaskApiService');
+          const credential = getUserCredential();
+          
+          if (credential) {
+            const result = await getFlaskSession(credential);
+            
+            if (result.success && result.data.quiz_data?.prediction?.targets) {
+              // User has existing data
+              setHasExistingData(true);
+            }
+          }
+        } catch (error) {
+          console.log('No existing data found');
+        }
+        
+        setIsCheckingData(false);
+      } else {
+        setIsCheckingData(false);
+      }
+    };
+    
+    checkExistingData();
   }, [router]);
 
   // Validate email format
@@ -277,6 +303,37 @@ export default function LoginPage() {
                 Enter your details to start the fun screening journey for your child!
               </p>
             </div>
+
+            {/* Existing Data Notice */}
+            {hasExistingData && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                style={styles.existingDataBanner}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Check size={24} color={colors.primary} />
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: colors.dark }}>
+                      Previous Results Found!
+                    </h3>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: colors.gray }}>
+                      You have completed an assessment. View your results now.
+                    </p>
+                  </div>
+                </div>
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => router.push('/dashboard')}
+                  style={styles.dashboardButton}
+                >
+                  View Dashboard
+                  <ArrowRight size={18} />
+                </motion.button>
+              </motion.div>
+            )}
 
             <div style={styles.formGroup}>
               <label style={styles.label}>
@@ -624,6 +681,32 @@ const styles = {
     backgroundColor: '#fef3c7',
     borderRadius: '12px',
     marginTop: '16px',
+  },
+  existingDataBanner: {
+    backgroundColor: '#f0fdf4',
+    border: `2px solid ${colors.primaryLight}`,
+    borderRadius: '16px',
+    padding: '20px',
+    marginBottom: '24px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  dashboardButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    backgroundColor: colors.primary,
+    color: colors.white,
+    border: 'none',
+    padding: '12px 24px',
+    borderRadius: '12px',
+    fontSize: '15px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    boxShadow: '0 4px 12px rgba(34, 197, 94, 0.25)',
   },
   footer: {
     padding: '20px 40px',

@@ -4,14 +4,37 @@
  */
 
 const USER_DATA_KEY = 'leadis_user_data';
+const USER_CREDENTIALS_KEY = 'leadis_user_credentials';
+
+/**
+ * Get username from user credentials
+ * @returns {string|null} Username from credentials or null if not found
+ */
+export const getUsernameFromCredentials = () => {
+  try {
+    const credentials = localStorage.getItem(USER_CREDENTIALS_KEY);
+    if (credentials) {
+      const parsed = JSON.parse(credentials);
+      return parsed.username || null;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error reading user credentials:', error);
+    return null;
+  }
+};
 
 /**
  * Initialize user data structure
  * @returns {Object} Empty user data structure
  */
 export const initializeUserData = () => {
+  // Use username from credentials as userId, fallback to generated ID
+  const username = getUsernameFromCredentials();
+  const userId = username || generateUserId();
+  
   return {
-    userId: generateUserId(),
+    userId: userId,
     timestamp: new Date().toISOString(),
     demographicInfo: {
       primary_language: null,
@@ -52,33 +75,24 @@ export const initializeUserData = () => {
       },
       attentionMetrics: {
         mean_focus_duration_sec: null,
-        attention_dropoff_slope: null,
         attention_span_average: null,
         random_interaction_rate: null
       },
       memoryMetrics: {
-        max_sequence_length: null,
-        sequence_order_error_rate: null
+        max_sequence_length: null
       },
       visualProcessing: {
-        visual_search_time_ms: null,
-        left_right_confusion_rate: null,
-        pref_visual: null
+        visual_search_time_ms: null
       },
       auditoryProcessing: {
         auditory_processing_accuracy: null,
         average_audio_replays: 0,
         pref_auditory: null
       },
-      speechMetrics: {
-        speech_rate_wpm: null,
-        hesitation_frequency: 0
-      },
-      readingMetrics: {
-        reading_speed_wpm: null,
-        reading_accuracy: null,
-        letter_reversal_rate: null,
-        audio_text_mismatch_rate: null
+      motorCoordination: {
+        hand_laterality_accuracy: null,
+        finger_counting_accuracy: null,
+        hand_position_accuracy: null
       }
     },
     riskAssessment: {
@@ -86,7 +100,6 @@ export const initializeUserData = () => {
       risk_writing: null,
       risk_attention: null,
       risk_working_memory: null,
-      risk_expressive_language: null,
       risk_receptive_language: null,
       risk_visual_processing: null,
       risk_motor_coordination: null
@@ -125,6 +138,14 @@ export const saveUserData = (userData) => {
   try {
     // Update timestamp
     userData.timestamp = new Date().toISOString();
+    
+    // Ensure userId is set to username from credentials
+    const username = getUsernameFromCredentials();
+    if (username) {
+      userData.userId = username;
+      console.log('💾 Using username as userId:', username);
+    }
+    
     localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
     return true;
   } catch (error) {
@@ -280,19 +301,11 @@ export const updateAssessmentMetrics = (metrics) => {
     };
   }
   
-  // Update speech metrics
-  if (metrics.speechMetrics) {
-    userData.assessmentMetrics.speechMetrics = {
-      ...userData.assessmentMetrics.speechMetrics,
-      ...metrics.speechMetrics
-    };
-  }
-  
-  // Update reading metrics
-  if (metrics.readingMetrics) {
-    userData.assessmentMetrics.readingMetrics = {
-      ...userData.assessmentMetrics.readingMetrics,
-      ...metrics.readingMetrics
+  // Update motor coordination
+  if (metrics.motorCoordination) {
+    userData.assessmentMetrics.motorCoordination = {
+      ...userData.assessmentMetrics.motorCoordination,
+      ...metrics.motorCoordination
     };
   }
   
@@ -307,12 +320,80 @@ export const updateAssessmentMetrics = (metrics) => {
 export const updateRiskAssessment = (riskScores) => {
   const userData = getUserData() || initializeUserData();
   
+  // Handle both direct risk scores and Flask prediction format with 'targets'
+  let scores = riskScores;
+  if (riskScores.targets) {
+    scores = riskScores.targets;
+    console.log('📊 Extracted targets from prediction:', scores);
+  }
+  
   userData.riskAssessment = {
     ...userData.riskAssessment,
-    ...riskScores
+    ...scores
   };
   
   return saveUserData(userData);
+};
+
+/**
+ * Update face tracking attention metrics
+ * @param {Object} faceMetrics - Face tracking metrics
+ * @returns {boolean} Success status
+ */
+export const updateFaceTrackingMetrics = (faceMetrics) => {
+  const userData = getUserData() || initializeUserData();
+  
+  // Update attention metrics from face tracking
+  if (faceMetrics.meanFocusDurationSec !== null && faceMetrics.meanFocusDurationSec !== undefined) {
+    userData.assessmentMetrics.attentionMetrics.mean_focus_duration_sec = 
+      faceMetrics.meanFocusDurationSec;
+  }
+  
+  if (faceMetrics.meanAttentionScore !== null && faceMetrics.meanAttentionScore !== undefined) {
+    // Convert attention score (0-100) to attention span average (0-1)
+    userData.assessmentMetrics.attentionMetrics.attention_span_average = 
+      faceMetrics.meanAttentionScore / 100;
+  }
+  
+  if (faceMetrics.randomInteractionRate !== null && faceMetrics.randomInteractionRate !== undefined) {
+    userData.assessmentMetrics.attentionMetrics.random_interaction_rate = 
+      faceMetrics.randomInteractionRate;
+  }
+  
+  // Store additional face tracking data for reference
+  if (!userData.faceTrackingData) {
+    userData.faceTrackingData = {};
+  }
+  
+  userData.faceTrackingData = {
+    ...userData.faceTrackingData,
+    lastUpdated: new Date().toISOString(),
+    sessionDurationMs: faceMetrics.sessionDurationMs || null,
+    blinkCount: faceMetrics.blinkCount || null,
+    lookAwayCount: faceMetrics.lookAwayCount || null,
+    lookAwayDurationMs: faceMetrics.lookAwayDurationMs || null,
+    gazeOnScreenRatio: faceMetrics.gazeOnScreenRatio || null,
+    faceDetectionRate: faceMetrics.faceDetectionRate || null,
+    engagementDistribution: faceMetrics.engagementDistribution || null,
+  };
+  
+  console.log('👁️ Face tracking metrics updated:', faceMetrics);
+  
+  return saveUserData(userData);
+};
+
+/**
+ * Get face tracking data summary
+ * @returns {Object|null} Face tracking data or null if not found
+ */
+export const getFaceTrackingData = () => {
+  const userData = getUserData();
+  if (!userData) return null;
+  
+  return {
+    attentionMetrics: userData.assessmentMetrics?.attentionMetrics || null,
+    faceTrackingData: userData.faceTrackingData || null,
+  };
 };
 
 /**
@@ -352,6 +433,69 @@ export const getUserDataSummary = () => {
     age_months: userData.demographicInfo.age_months,
     gender: userData.demographicInfo.gender,
     hasAssessmentData: Object.values(userData.assessmentMetrics.responseMetrics).some(v => v !== null),
-    hasRiskScores: Object.values(userData.riskAssessment).some(v => v !== null)
+    hasRiskScores: Object.values(userData.riskAssessment).some(v => v !== null),
+    hasNotebookAnalysis: userData.notebookAnalysis !== null && userData.notebookAnalysis !== undefined
   };
 };
+
+/**
+ * Save notebook analysis results
+ * @param {Object} analysisResult - Results from handwriting analysis
+ * @returns {boolean} Success status
+ */
+export const saveNotebookAnalysis = (analysisResult) => {
+  const userData = getUserData() || initializeUserData();
+  
+  // Store notebook analysis data
+  userData.notebookAnalysis = {
+    timestamp: new Date().toISOString(),
+    readabilityScore: analysisResult.readabilityScore,
+    confidence: analysisResult.confidence,
+    wordCount: analysisResult.wordCount,
+    lineCount: analysisResult.lineCount,
+    metrics: analysisResult.metrics || {},
+    dysgraphiaIndicators: analysisResult.dysgraphiaIndicators || {},
+    findings: analysisResult.findings || [],
+  };
+  
+  // Update risk assessment based on notebook analysis
+  if (analysisResult.dysgraphiaIndicators) {
+    const indicators = analysisResult.dysgraphiaIndicators;
+    
+    // Map notebook findings to risk scores
+    if (indicators.writingRisk !== undefined) {
+      userData.riskAssessment.risk_writing = Math.max(
+        userData.riskAssessment.risk_writing || 0,
+        indicators.writingRisk
+      );
+    }
+    
+    if (indicators.motorCoordinationRisk !== undefined) {
+      userData.riskAssessment.risk_motor_coordination = Math.max(
+        userData.riskAssessment.risk_motor_coordination || 0,
+        indicators.motorCoordinationRisk
+      );
+    }
+    
+    if (indicators.visualProcessingRisk !== undefined) {
+      userData.riskAssessment.risk_visual_processing = Math.max(
+        userData.riskAssessment.risk_visual_processing || 0,
+        indicators.visualProcessingRisk
+      );
+    }
+  }
+  
+  console.log('📝 Notebook analysis saved to user data:', analysisResult);
+  
+  return saveUserData(userData);
+};
+
+/**
+ * Get notebook analysis data
+ * @returns {Object|null} Notebook analysis data or null if not found
+ */
+export const getNotebookAnalysis = () => {
+  const userData = getUserData();
+  if (!userData) return null;
+  
+  return userData.notebookAnalysis || null;};

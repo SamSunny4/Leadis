@@ -138,6 +138,7 @@ export default function AuditoryDiscriminationTest({ onComplete }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [playedSounds, setPlayedSounds] = useState({ first: false, second: false });
     const [feedback, setFeedback] = useState(null);
+    const [playCount, setPlayCount] = useState(0); // Track audio replays
     const audioContextRef = useRef(null);
 
     const currentQuestion = QUESTIONS[currentIndex];
@@ -185,6 +186,7 @@ export default function AuditoryDiscriminationTest({ onComplete }) {
         if (isPlaying) return;
         
         setIsPlaying(true);
+        setPlayCount(prev => prev + 1); // Increment play count
         const sound = which === 'first' ? currentQuestion.sound1 : currentQuestion.sound2;
         await playTone(sound.frequency, sound.duration);
         setPlayedSounds(prev => ({ ...prev, [which]: true }));
@@ -195,6 +197,7 @@ export default function AuditoryDiscriminationTest({ onComplete }) {
         if (isPlaying) return;
         
         setIsPlaying(true);
+        setPlayCount(prev => prev + 1); // Increment play count
         await playTone(currentQuestion.sound1.frequency, currentQuestion.sound1.duration);
         await new Promise(resolve => setTimeout(resolve, 500)); // Gap between sounds
         await playTone(currentQuestion.sound2.frequency, currentQuestion.sound2.duration);
@@ -204,7 +207,12 @@ export default function AuditoryDiscriminationTest({ onComplete }) {
 
     const handleAnswer = (answer) => {
         const isCorrect = answer === currentQuestion.correctAnswer;
-        setAnswers(prev => [...prev, { questionId: currentQuestion.id, answer, isCorrect }]);
+        setAnswers(prev => [...prev, { 
+            questionId: currentQuestion.id, 
+            answer, 
+            isCorrect,
+            audioReplays: playCount // Store audio replays for this question
+        }]);
         
         // Show feedback
         setFeedback(isCorrect ? 'correct' : 'incorrect');
@@ -214,12 +222,30 @@ export default function AuditoryDiscriminationTest({ onComplete }) {
             if (currentIndex < QUESTIONS.length - 1) {
                 setCurrentIndex(prev => prev + 1);
                 setPlayedSounds({ first: false, second: false });
+                setPlayCount(0); // Reset play count for next question
             } else {
                 // Calculate final score
-                const allAnswers = [...answers, { questionId: currentQuestion.id, answer, isCorrect }];
+                const allAnswers = [...answers, { 
+                    questionId: currentQuestion.id, 
+                    answer, 
+                    isCorrect,
+                    audioReplays: playCount
+                }];
                 const correctCount = allAnswers.filter(a => a.isCorrect).length;
                 const score = Math.round((correctCount / QUESTIONS.length) * 100);
-                onComplete({ score, answers: allAnswers });
+                
+                // Calculate total audio replays and accuracy
+                const totalAudioReplays = allAnswers.reduce((sum, a) => sum + (a.audioReplays || 0), 0);
+                const accuracy = correctCount / QUESTIONS.length;
+                
+                onComplete({ 
+                    score, 
+                    answers: allAnswers,
+                    accuracy,
+                    audioReplays: totalAudioReplays,
+                    wordsCorrect: correctCount,
+                    wordsTotal: QUESTIONS.length
+                });
             }
         }, 800);
     };
