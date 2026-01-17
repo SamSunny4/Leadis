@@ -67,7 +67,7 @@ const FloatingShapes = () => {
 
 // Confetti component for completion
 const Confetti = () => {
-    const confettiPieces = useMemo(() => 
+    const confettiPieces = useMemo(() =>
         Array.from({ length: 50 }, (_, i) => ({
             id: i,
             left: `${Math.random() * 100}%`,
@@ -115,9 +115,9 @@ const ProgressBar = ({ current, total }) => {
             </span>
             <div style={{ display: 'flex', gap: '4px' }}>
                 {[0, 1, 2].map((i) => (
-                    <span 
-                        key={i} 
-                        style={{ 
+                    <span
+                        key={i}
+                        style={{
                             fontSize: '20px',
                             opacity: i < starsEarned ? 1 : 0.3,
                             transition: 'all 0.3s',
@@ -148,6 +148,8 @@ export default function QuizPage() {
     const [isSendingToFlask, setIsSendingToFlask] = useState(false);
     const [userData, setUserData] = useState(null);
     const [performance, setPerformance] = useState(null);
+    const [isGeneratingFollowUp, setIsGeneratingFollowUp] = useState(false);
+
     
     // Face tracking state
     const [isFaceTrackingEnabled, setIsFaceTrackingEnabled] = useState(true);
@@ -166,12 +168,12 @@ export default function QuizPage() {
         audioRef.current = new Audio(musicTracks[0]);
         audioRef.current.volume = 0.3;
         audioRef.current.loop = false;
-        
+
         audioRef.current.addEventListener('ended', () => {
             // Play next track when current ends
             setCurrentTrack(prev => (prev + 1) % musicTracks.length);
         });
-        
+
         return () => {
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -179,20 +181,20 @@ export default function QuizPage() {
             }
         };
     }, []);
-    
+
     // Handle track changes
     useEffect(() => {
         if (audioRef.current && !isLoading) {
             const wasPlaying = !audioRef.current.paused;
             audioRef.current.src = musicTracks[currentTrack];
             audioRef.current.volume = 0.3;
-            
+
             if (wasPlaying) {
                 audioRef.current.play().catch(e => console.log('Audio play failed:', e));
             }
         }
     }, [currentTrack]);
-    
+
     // Start music after loading
     useEffect(() => {
         if (!isLoading && questions.length > 0 && audioRef.current && !isMusicPlaying) {
@@ -203,7 +205,7 @@ export default function QuizPage() {
             });
         }
     }, [isLoading, questions]);
-    
+
     // Stop music when quiz completes
     useEffect(() => {
         if (isCompleted && audioRef.current) {
@@ -220,16 +222,16 @@ export default function QuizPage() {
                 // Get user screening data
                 const screeningData = getUserScreeningData();
                 setUserData(screeningData);
-                
+
                 // Get performance history
                 const perfHistory = getPerformanceHistory();
                 setPerformance(perfHistory);
-                
+
                 // ALWAYS force regenerate on initial load (don't use cache on mount)
                 clearStoredQuestions(); // Clear any old cached questions
                 const generatedQuestions = await generatePersonalizedQuestions(true); // Force new generation
                 let normalized = generatedQuestions.map(normalizeQuestion);
-                
+
                 // Inject Interactive Assessment after listening test
                 const apdIndex = normalized.findIndex(q => q.type === QuestionType.APD_TEST);
                 const interactiveQuestion = {
@@ -237,14 +239,15 @@ export default function QuizPage() {
                     type: QuestionType.INTERACTIVE_ASSESSMENT,
                     question: 'Interactive Assessment',
                 };
-                
+
                 if (apdIndex !== -1) {
                     normalized.splice(apdIndex + 1, 0, interactiveQuestion);
                 } else {
                     normalized.push(interactiveQuestion);
                 }
-                
+
                 setQuestions(normalized);
+
                 
                 // Start quiz session tracking
                 startQuizSession();
@@ -266,11 +269,11 @@ export default function QuizPage() {
         setAnswers({});
         setAnswerResults({});
         clearStoredQuestions();
-        
+
         try {
             const generatedQuestions = await generatePersonalizedQuestions(true);
             let normalized = generatedQuestions.map(normalizeQuestion);
-            
+
             // Inject Interactive Assessment after listening test
             const apdIndex = normalized.findIndex(q => q.type === QuestionType.APD_TEST);
             const interactiveQuestion = {
@@ -278,13 +281,13 @@ export default function QuizPage() {
                 type: QuestionType.INTERACTIVE_ASSESSMENT,
                 question: 'Interactive Assessment',
             };
-            
+
             if (apdIndex !== -1) {
                 normalized.splice(apdIndex + 1, 0, interactiveQuestion);
             } else {
                 normalized.push(interactiveQuestion);
             }
-            
+
             setQuestions(normalized);
         } catch (error) {
             console.error('Failed to regenerate questions:', error);
@@ -306,7 +309,7 @@ export default function QuizPage() {
     // Pause music during APD tests
     useEffect(() => {
         const isAPDTest = currentQuestion?.type === 'apd-test';
-        
+
         if (audioRef.current) {
             if (isAPDTest && !audioRef.current.paused) {
                 audioRef.current.pause();
@@ -352,6 +355,11 @@ export default function QuizPage() {
 
     const handleOptionSelect = async (option) => {
         if (!currentQuestion) return;
+
+        let isCorrect = option === currentQuestion.correctAnswer;
+
+        // Minigames and APD tests are considered correct if completed (any result returned)
+        if (currentQuestion.type === 'minigame' || currentQuestion.type === 'apd-test') {
         
         // Extract audio replays if provided in the option object
         let audioReplays = 0;
@@ -371,6 +379,8 @@ export default function QuizPage() {
 
         const category = currentQuestion.category || 'general';
         const difficulty = currentQuestion.difficulty || 'medium';
+
+        // Update answers
         
         // Record metrics based on question type
         if (currentQuestion.type === 'minigame' && typeof option === 'object') {
@@ -414,17 +424,17 @@ export default function QuizPage() {
             ...prev,
             [currentQuestion.id]: actualAnswer,
         }));
-        
+
         // Track if answer was correct
         setAnswerResults((prev) => ({
             ...prev,
             [currentQuestion.id]: isCorrect,
         }));
-        
+
         // Update performance and get new difficulty
         const perfResult = updatePerformance(category, isCorrect, difficulty);
         setPerformance(perfResult.overallProgress);
-        
+
         // Show celebration for correct answers
         if (isCorrect) {
             setShowCelebration(true);
@@ -432,7 +442,7 @@ export default function QuizPage() {
         } else {
             // If wrong, try to get an easier follow-up question
             console.log(`Wrong answer in ${category}. New difficulty: ${perfResult.newDifficulty}`);
-            
+
             // Optionally insert an easier question
             if (perfResult.newDifficulty !== difficulty && currentQuestionIndex < totalQuestions - 1) {
                 setIsGeneratingFollowUp(true);
@@ -492,8 +502,8 @@ export default function QuizPage() {
         
         // Calculate final score
         const correctCount = Object.values(answerResults).filter(r => r === true).length;
-        console.log('Quiz Completed', { 
-            answers, 
+        console.log('Quiz Completed', {
+            answers,
             answerResults,
             score: `${correctCount}/${Object.keys(answerResults).length}`,
             performance,
@@ -652,7 +662,7 @@ export default function QuizPage() {
     if (isCompleted) {
         const scorePercent = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
         const userName = userData?.fullName?.split(' ')[0] || '';
-        
+
         return (
             <div style={quizStyles.container}>
                 <FloatingShapes />
@@ -667,17 +677,17 @@ export default function QuizPage() {
                     <Confetti />
                     <div style={quizStyles.starsContainer}>
                         {[0, 1, 2].map((i) => {
-                            const earned = (i === 0 && scorePercent >= 30) || 
-                                          (i === 1 && scorePercent >= 60) || 
-                                          (i === 2 && scorePercent >= 80);
+                            const earned = (i === 0 && scorePercent >= 30) ||
+                                (i === 1 && scorePercent >= 60) ||
+                                (i === 2 && scorePercent >= 80);
                             return (
-                                <Star 
-                                    key={i} 
+                                <Star
+                                    key={i}
                                     size={48}
                                     fill={earned ? colors.yellow : '#e2e8f0'}
                                     color={earned ? colors.yellow : '#cbd5e1'}
-                                    style={{ 
-                                        ...quizStyles.starBadge, 
+                                    style={{
+                                        ...quizStyles.starBadge,
                                         animationDelay: `${i * 0.2}s`,
                                         opacity: earned ? 1 : 0.5
                                     }}
@@ -804,6 +814,7 @@ export default function QuizPage() {
                 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
                 @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(10deg); } }
             `}</style>
+
             
             {/* Face Tracking Overlay - Always Active */}
             <FaceTrackingOverlay
@@ -816,7 +827,7 @@ export default function QuizPage() {
             />
             
             <FloatingShapes />
-            
+
             {/* Header with Timer */}
             <div style={quizStyles.header}>
                 <div style={quizStyles.logo}>
