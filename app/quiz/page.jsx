@@ -320,8 +320,8 @@ export default function QuizPage() {
         
         let isCorrect = option === currentQuestion.correctAnswer;
         
-        // Minigames and APD tests are considered correct if completed (any result returned)
-        if (currentQuestion.type === 'minigame' || currentQuestion.type === 'apd-test') {
+        // Minigames, APD tests, and interactive assessments are considered correct if completed
+        if (currentQuestion.type === 'minigame' || currentQuestion.type === 'apd-test' || currentQuestion.type === 'interactive-assessment') {
             isCorrect = true;
         }
 
