@@ -4,13 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Logo from './components/Logo';
-import { 
-  Brain, 
-  Sparkles, 
-  PlayCircle, 
-  FileText, 
-  Users, 
-  Shield, 
+import {
+  Brain,
+  Sparkles,
+  PlayCircle,
+  FileText,
+  Users,
+  Shield,
   ChevronDown,
   Check,
   ArrowRight,
@@ -29,6 +29,7 @@ import {
   Calculator,
   Eye
 } from 'lucide-react';
+import OtterCursorFollower from './quiz/components/OtterCursorFollower';
 
 // Fun color palette - Light Green Theme
 const colors = {
@@ -135,7 +136,7 @@ const RotatingQuote = () => {
           <p style={styles.factText}>{awarenessQuotes[currentIndex].fact}</p>
         </motion.div>
       </AnimatePresence>
-      
+
       {/* Quote indicators */}
       <div style={styles.indicators}>
         {awarenessQuotes.map((_, index) => (
@@ -182,7 +183,7 @@ const HeroSection = () => {
           transition={{ duration: 0.8 }}
           style={styles.heroTextContainer}
         >
-          <motion.div 
+          <motion.div
             style={styles.heroBadge}
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ repeat: Infinity, duration: 2 }}
@@ -195,10 +196,10 @@ const HeroSection = () => {
             <span style={styles.heroTitleAccent}>Learning Difference?</span>
           </h1>
           <p style={styles.heroSubtitle}>
-            A fun, friendly screening platform that helps discover how your child learns best — 
+            A fun, friendly screening platform that helps discover how your child learns best —
             through games, activities, and play!
           </p>
-          
+
           <div style={styles.heroCTA}>
             <Link href="/login" style={{ textDecoration: 'none' }}>
               <motion.button
@@ -405,26 +406,26 @@ const AwarenessBanner = () => {
           Every Child is Unique & Amazing!
         </h2>
         <p style={styles.bannerText}>
-          Learning differences don't stop kids from being incredible. With early support, 
-          children can unlock their superpowers and achieve anything they dream of! 
+          Learning differences don't stop kids from being incredible. With early support,
+          children can unlock their superpowers and achieve anything they dream of!
           We're here to help every family discover their child's unique gifts.
         </p>
         <div style={styles.bannerStats}>
-          <motion.div 
+          <motion.div
             style={styles.statItem}
             whileHover={{ scale: 1.05 }}
           >
             <span style={styles.statNumber}>1 in 5</span>
             <span style={styles.statLabel}>kids learn differently</span>
           </motion.div>
-          <motion.div 
+          <motion.div
             style={styles.statItem}
             whileHover={{ scale: 1.05 }}
           >
             <span style={styles.statNumber}>70%</span>
             <span style={styles.statLabel}>aren't found early enough</span>
           </motion.div>
-          <motion.div 
+          <motion.div
             style={styles.statItem}
             whileHover={{ scale: 1.05 }}
           >
@@ -620,6 +621,7 @@ const Footer = () => {
 export default function Home() {
   return (
     <div style={styles.app}>
+      <OtterCursorFollower />
       <HeroSection />
       <HowItWorksSection />
       <FeaturesSection />
@@ -653,7 +655,7 @@ const styles = {
     position: 'absolute',
     opacity: 0.6,
   },
-  
+
   // Navigation
   nav: {
     display: 'flex',
