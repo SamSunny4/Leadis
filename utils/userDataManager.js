@@ -4,14 +4,37 @@
  */
 
 const USER_DATA_KEY = 'leadis_user_data';
+const USER_CREDENTIALS_KEY = 'leadis_user_credentials';
+
+/**
+ * Get username from user credentials
+ * @returns {string|null} Username from credentials or null if not found
+ */
+export const getUsernameFromCredentials = () => {
+  try {
+    const credentials = localStorage.getItem(USER_CREDENTIALS_KEY);
+    if (credentials) {
+      const parsed = JSON.parse(credentials);
+      return parsed.username || null;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error reading user credentials:', error);
+    return null;
+  }
+};
 
 /**
  * Initialize user data structure
  * @returns {Object} Empty user data structure
  */
 export const initializeUserData = () => {
+  // Use username from credentials as userId, fallback to generated ID
+  const username = getUsernameFromCredentials();
+  const userId = username || generateUserId();
+  
   return {
-    userId: generateUserId(),
+    userId: userId,
     timestamp: new Date().toISOString(),
     demographicInfo: {
       primary_language: null,
@@ -115,6 +138,14 @@ export const saveUserData = (userData) => {
   try {
     // Update timestamp
     userData.timestamp = new Date().toISOString();
+    
+    // Ensure userId is set to username from credentials
+    const username = getUsernameFromCredentials();
+    if (username) {
+      userData.userId = username;
+      console.log('💾 Using username as userId:', username);
+    }
+    
     localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
     return true;
   } catch (error) {
@@ -289,9 +320,16 @@ export const updateAssessmentMetrics = (metrics) => {
 export const updateRiskAssessment = (riskScores) => {
   const userData = getUserData() || initializeUserData();
   
+  // Handle both direct risk scores and Flask prediction format with 'targets'
+  let scores = riskScores;
+  if (riskScores.targets) {
+    scores = riskScores.targets;
+    console.log('📊 Extracted targets from prediction:', scores);
+  }
+  
   userData.riskAssessment = {
     ...userData.riskAssessment,
-    ...riskScores
+    ...scores
   };
   
   return saveUserData(userData);

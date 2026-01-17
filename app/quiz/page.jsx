@@ -497,6 +497,10 @@ export default function QuizPage() {
             
             console.log('📤 Sending data to Flask server...');
             
+            // Get username from credentials (this will be the primary key in database)
+            const username = getUserCredential();
+            console.log('📧 Using username as credential:', username);
+            
             // Get current user data from localStorage
             const currentUserData = getUserData();
             if (!currentUserData) {
@@ -506,11 +510,8 @@ export default function QuizPage() {
             // Transform data to Flask format
             const flaskData = transformUserDataForFlask(currentUserData);
             
-            // Get user credential
-            const credential = getUserCredential();
-            
-            // Send prediction request
-            const result = await sendPredictionRequest(flaskData, credential);
+            // Send prediction request with username as credential (primary key)
+            const result = await sendPredictionRequest(flaskData, username);
             
             if (!result.success) {
                 throw new Error(result.error || 'Prediction failed');

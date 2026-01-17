@@ -187,13 +187,13 @@ export default function DashboardPage() {
                 setIsLoading(true);
                 setError(null);
                 
-                // Get user credential
-                const credential = getUserCredential();
-                console.log('Fetching data for credential:', credential);
+                // Get username from credentials (primary key in database)
+                const username = getUserCredential();
+                console.log('📧 Fetching data for username:', username);
                 
                 // Try to fetch from Flask server first
                 try {
-                    const flaskResult = await getFlaskSession(credential);
+                    const flaskResult = await getFlaskSession(username);
                     
                     if (flaskResult.success && flaskResult.data.quiz_data?.prediction?.targets) {
                         console.log('✅ Fetched data from Flask:', flaskResult.data);
@@ -207,6 +207,8 @@ export default function DashboardPage() {
                 
                 // Fallback to localStorage
                 const userData = getUserData();
+                console.log('📦 Checking localStorage for user data with userId:', userData?.userId);
+                
                 if (userData && userData.riskAssessment) {
                     const risks = userData.riskAssessment;
                     // Check if we have any risk data
@@ -220,7 +222,8 @@ export default function DashboardPage() {
                 }
                 
                 // No data available
-                console.warn('No prediction data available');
+                console.warn('⚠️ No prediction data available');
+                console.log('Debug - userData:', userData);
                 setPredictionData(null);
                 
             } catch (err) {

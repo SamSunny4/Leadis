@@ -66,18 +66,19 @@ export const createFlaskSession = async (credential) => {
 /**
  * Send prediction request to Flask server
  * @param {Object} userData - User assessment data prepared for Flask
- * @param {string} credential - User credential/identifier
+ * @param {string} credential - Username from leadis_user_credentials (primary key)
  * @returns {Promise<Object>} Prediction response with risk scores
  */
 export const sendPredictionRequest = async (userData, credential) => {
   try {
-    // Add credential to the data
+    // Use username from credentials as the credential (primary key in database)
     const requestData = {
       ...userData,
-      credential,
+      credential,  // This is the username from leadis_user_credentials
     };
     
-    console.log('Sending prediction request to Flask:', requestData);
+    console.log('📤 Sending prediction request with username as credential:', credential);
+    console.log('Request data:', requestData);
     
     const response = await fetch(`${FLASK_API_URL}/predict`, {
       method: 'POST',
@@ -106,11 +107,12 @@ export const sendPredictionRequest = async (userData, credential) => {
 
 /**
  * Retrieve session data from Flask server
- * @param {string} credential - User credential/identifier
+ * @param {string} credential - Username from leadis_user_credentials (primary key)
  * @returns {Promise<Object>} Session data
  */
 export const getFlaskSession = async (credential) => {
   try {
+    console.log('📥 Fetching session data for username:', credential);
     const response = await fetch(`${FLASK_API_URL}/session/${credential}`, {
       method: 'GET',
       headers: {
@@ -134,21 +136,36 @@ export const getFlaskSession = async (credential) => {
 };
 
 /**
- * Get user credential from localStorage or generate one
- * @returns {string} User credential
+ * Get username from user credentials to use as credential
+ * @returns {string} Username from leadis_user_credentials or generated credential
  */
 export const getUserCredential = () => {
-  const CREDENTIAL_KEY = 'leadis_user_credential';
+  const USER_CREDENTIALS_KEY = 'leadis_user_credentials';
   
-  // Try to get existing credential
+  try {
+    // Try to get username from user credentials
+    const credentials = localStorage.getItem(USER_CREDENTIALS_KEY);
+    if (credentials) {
+      const parsed = JSON.parse(credentials);
+      if (parsed.username) {
+        console.log('📧 Using username from credentials:', parsed.username);
+        return parsed.username;
+      }
+    }
+  } catch (error) {
+    console.error('Error reading user credentials:', error);
+  }
+  
+  // Fallback to old credential system if no username found
+  const CREDENTIAL_KEY = 'leadis_user_credential';
   let credential = localStorage.getItem(CREDENTIAL_KEY);
   
-  // Generate new credential if doesn't exist
   if (!credential) {
     credential = `cred_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     localStorage.setItem(CREDENTIAL_KEY, credential);
   }
   
+  console.warn('⚠️ No username found in credentials, using fallback:', credential);
   return credential;
 };
 
