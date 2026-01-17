@@ -331,11 +331,7 @@ Return ONLY the JSON array, no other text.`;
     try {
         console.log('Generating personalized questions for:', { age, gradeLevel, focusAreas });
     
-     // TEMPORARY: Bypass API to save quota
-        console.log('⚠️ API GENERATION DISABLED - Using fallback questions');
-        const questions = getFallbackQuestions(age, gradeLevel, focusAreas);
-
-        /* API CALL COMMENTED OUT
+    
         
         const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
             method: 'POST',
@@ -379,7 +375,7 @@ Return ONLY the JSON array, no other text.`;
         cleanedContent = cleanedContent.trim();
 
         const questions = JSON.parse(cleanedContent);
-        */
+       
         if (!Array.isArray(questions)) {
             throw new Error('Response is not an array');
         }

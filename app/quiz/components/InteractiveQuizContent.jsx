@@ -1,15 +1,22 @@
 'use client';
 
 import React from 'react';
-import InteractiveAssessment from '../../../src/components/InteractiveAssessment';
+import HandMotorAssessment from './vpd/HandMotorAssessment';
 import { motion } from 'framer-motion';
 
 export default function InteractiveQuizContent({
     onAnswerSelect,
+    onNext,
 }) {
     const handleComplete = (data) => {
+        console.log('InteractiveQuizContent handleComplete called');
         // Pass the assessment data as the "answer"
         onAnswerSelect(data);
+        // Move to next question
+        if (onNext) {
+            console.log('Calling onNext to advance quiz');
+            setTimeout(() => onNext(), 100); // Small delay to ensure state updates
+        }
     };
 
     return (
@@ -19,10 +26,8 @@ export default function InteractiveQuizContent({
             transition={{ duration: 0.4 }}
             style={{ width: '100%' }}
         >
-            <InteractiveAssessment 
-                onAssessmentComplete={handleComplete}
-                ageGroup="5-7"
-                assessmentType="full"
+            <HandMotorAssessment 
+                onComplete={handleComplete}
             />
         </motion.div>
     );

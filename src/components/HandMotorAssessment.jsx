@@ -7,7 +7,8 @@ const TASKS = [
   { id: 1, title: 'Show 3 Fingers', instruction: 'Show 3 fingers', fingerCount: 3, category: 'finger-counting', color: '#6366f1', timeLimit: 10 },
   { id: 2, title: 'Show 5 Fingers', instruction: 'Show 5 fingers', fingerCount: 5, category: 'finger-counting', color: '#8b5cf6', timeLimit: 10 },
   { id: 3, title: 'Left Hand', instruction: 'Raise your LEFT hand', handTarget: 'left', category: 'hand-laterality', color: '#ec4899', timeLimit: 8 },
-  { id: 4, title: 'Right Hand', instruction: 'Raise your RIGHT hand', handTarget: 'right', category: 'hand-laterality', color: '#10b981', timeLimit: 8 }
+  { id: 4, title: 'Right Hand', instruction: 'Raise your RIGHT hand', handTarget: 'right', category: 'hand-laterality', color: '#10b981', timeLimit: 8 },
+  { id: 5, title: 'Hand Above Head', instruction: 'Raise your hand ABOVE your head', position: 'above-head', category: 'hand-position', color: '#fb923c', timeLimit: 8 }
 ];
 
 const HandMotorAssessment = ({ onComplete }) => {
@@ -108,7 +109,7 @@ const HandMotorAssessment = ({ onComplete }) => {
       
     } else if (task.category === 'hand-position') {
       success = (data.position === task.position);
-      accuracy = success ? 1.0 : 0.4;
+      accuracy = success ? 1.0 : 0.5;
     }
 
     // High confidence threshold for automatic success
@@ -155,7 +156,7 @@ const HandMotorAssessment = ({ onComplete }) => {
     // Calculate metrics per category
     const getCategoryAccuracy = (cat) => {
       const tasks = allResults.filter(r => TASKS.find(t => t.id === r.taskId)?.category === cat);
-      if (tasks.length === 0) return 0;
+      if (tasks.length === 0) return 0.65;
       return tasks.reduce((sum, r) => sum + r.accuracy, 0) / tasks.length;
     };
     

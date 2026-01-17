@@ -241,6 +241,7 @@ export default function AuditoryMemoryTest({ onComplete }) {
     const [selectedWords, setSelectedWords] = useState([]);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [feedback, setFeedback] = useState(null);
+    const [playCount, setPlayCount] = useState(0); // Track audio replays
     const synthRef = useRef(null);
 
     const currentQuestion = questions[currentIndex];
@@ -287,6 +288,7 @@ export default function AuditoryMemoryTest({ onComplete }) {
         if (isPlaying || !currentQuestion) return;
         
         setIsPlaying(true);
+        setPlayCount(prev => prev + 1); // Increment play count
         
         if (currentQuestion.type === 'numbers' || currentQuestion.type === 'words') {
             for (const item of currentQuestion.items) {
@@ -322,7 +324,11 @@ export default function AuditoryMemoryTest({ onComplete }) {
 
     const handleSubmit = () => {
         const isCorrect = checkAnswer();
-        setAnswers(prev => [...prev, { questionId: currentQuestion.id, isCorrect }]);
+        setAnswers(prev => [...prev, { 
+            questionId: currentQuestion.id, 
+            isCorrect,
+            audioReplays: playCount // Store audio replays for this question
+        }]);
         
         setFeedback(isCorrect ? 'correct' : 'incorrect');
         
@@ -335,11 +341,28 @@ export default function AuditoryMemoryTest({ onComplete }) {
                 setUserInput('');
                 setSelectedWords([]);
                 setSelectedAnswer(null);
+                setPlayCount(0); // Reset play count for next question
             } else {
-                const allAnswers = [...answers, { questionId: currentQuestion.id, isCorrect }];
+                const allAnswers = [...answers, { 
+                    questionId: currentQuestion.id, 
+                    isCorrect,
+                    audioReplays: playCount
+                }];
                 const correctCount = allAnswers.filter(a => a.isCorrect).length;
                 const score = Math.round((correctCount / questions.length) * 100);
-                onComplete({ score, answers: allAnswers });
+                
+                // Calculate total audio replays and accuracy
+                const totalAudioReplays = allAnswers.reduce((sum, a) => sum + (a.audioReplays || 0), 0);
+                const accuracy = correctCount / questions.length;
+                
+                onComplete({ 
+                    score, 
+                    answers: allAnswers,
+                    accuracy,
+                    audioReplays: totalAudioReplays,
+                    wordsCorrect: correctCount,
+                    wordsTotal: questions.length
+                });
             }
         }, 800);
     };

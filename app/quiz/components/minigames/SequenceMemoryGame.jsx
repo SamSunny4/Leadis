@@ -21,6 +21,7 @@ export default function SequenceMemoryGame({ onComplete, config }) {
     const [level, setLevel] = useState(1);
     const [activeTile, setActiveTile] = useState(null);
     const [message, setMessage] = useState('');
+    const [startTime, setStartTime] = useState(null);
 
     const gridSize = 9; // 3x3 grid
 
@@ -30,6 +31,7 @@ export default function SequenceMemoryGame({ onComplete, config }) {
         setLevel(1);
         setGameState('idle');
         setMessage('Watch the pattern!');
+        setStartTime(Date.now());
 
         // Start first level after a short delay
         setTimeout(() => {
@@ -93,7 +95,17 @@ export default function SequenceMemoryGame({ onComplete, config }) {
     };
 
     const handleFinish = () => {
-        onComplete(`Reached Level ${level}`);
+        const completionTime = startTime ? Date.now() - startTime : 0;
+        onComplete({
+            gameType: 'sequence-memory',
+            score: level,
+            maxScore: level,
+            accuracy: 1.0,
+            completionTime: completionTime,
+            sequenceLength: level,
+            level: level,
+            errors: 0,
+        });
     };
 
     return (

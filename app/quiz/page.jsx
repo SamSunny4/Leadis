@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Clock, CheckCircle, Star, Loader2, RefreshCw, Volume2, VolumeX } from 'lucide-react';
+import { Clock, CheckCircle, Star, Loader2, RefreshCw, Volume2, VolumeX, FlaskConical, Zap, Camera, CameraOff } from 'lucide-react';
 import Link from 'next/link';
-import {
-    generatePersonalizedQuestions,
-    getStoredQuestions,
+import { useRouter } from 'next/navigation';
+import { 
+    generatePersonalizedQuestions, 
+    getStoredQuestions, 
     clearStoredQuestions,
     updatePerformance,
     getPerformanceHistory,
@@ -13,8 +14,23 @@ import {
     getUserScreeningData
 } from './services/questionManager';
 import QuizContent from './components/QuizContent';
+import FaceTrackingOverlay from './components/FaceTrackingOverlay';
 import { normalizeQuestion, QuestionType } from './schema/quizSchema';
 import { colors, quizStyles } from './styles/quizStyles';
+import {
+    startQuizSession,
+    startQuestionTimer,
+    recordQuestionResponse,
+    recordMinigameResult,
+    recordAPDResult,
+    recordInteractiveResult,
+    endQuizSession,
+} from '../../utils/quizMetricsTracker';
+import { getUserData, updateRiskAssessment, updateFaceTrackingMetrics } from '../../utils/userDataManager';
+import { transformUserDataForFlask } from '../../utils/dataTransformer';
+import { sendPredictionRequest, getUserCredential, checkFlaskHealth } from '../../utils/flaskApiService';
+import { skipQuizAndTest } from '../../utils/quizTestUtils';
+import { stopFaceTrackingSession, getFaceTrackingSummary } from '../../utils/faceTrackingService';
 
 // Fun floating shapes for background
 const FloatingShapes = () => {
@@ -117,6 +133,7 @@ const ProgressBar = ({ current, total }) => {
 };
 
 export default function QuizPage() {
+    const router = useRouter();
     const [questions, setQuestions] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -125,10 +142,20 @@ export default function QuizPage() {
     const [elapsedTime, setElapsedTime] = useState(0);
     const [isCompleted, setIsCompleted] = useState(false);
     const [showCelebration, setShowCelebration] = useState(false);
+    const [isGeneratingFollowUp, setIsGeneratingFollowUp] = useState(false);
+    const [flaskPrediction, setFlaskPrediction] = useState(null);
+    const [flaskError, setFlaskError] = useState(null);
+    const [isSendingToFlask, setIsSendingToFlask] = useState(false);
     const [userData, setUserData] = useState(null);
     const [performance, setPerformance] = useState(null);
     const [isGeneratingFollowUp, setIsGeneratingFollowUp] = useState(false);
 
+    
+    // Face tracking state
+    const [isFaceTrackingEnabled, setIsFaceTrackingEnabled] = useState(true);
+    const [isFaceTrackingMinimized, setIsFaceTrackingMinimized] = useState(true);
+    const [currentAttention, setCurrentAttention] = useState(null);
+    
     // Background music refs
     const audioRef = useRef(null);
     const [currentTrack, setCurrentTrack] = useState(0);
@@ -221,6 +248,10 @@ export default function QuizPage() {
 
                 setQuestions(normalized);
 
+                
+                // Start quiz session tracking
+                startQuizSession();
+                
                 console.log('Quiz initialized with', normalized.length, 'NEW questions');
             } catch (error) {
                 console.error('Failed to initialize quiz:', error);
@@ -267,6 +298,13 @@ export default function QuizPage() {
 
     const currentQuestion = questions[currentQuestionIndex];
     const totalQuestions = questions.length;
+
+    // Start question timer when question changes
+    useEffect(() => {
+        if (currentQuestion && !isLoading) {
+            startQuestionTimer(currentQuestion);
+        }
+    }, [currentQuestionIndex, currentQuestion, isLoading]);
 
     // Pause music during APD tests
     useEffect(() => {
@@ -322,6 +360,20 @@ export default function QuizPage() {
 
         // Minigames and APD tests are considered correct if completed (any result returned)
         if (currentQuestion.type === 'minigame' || currentQuestion.type === 'apd-test') {
+        
+        // Extract audio replays if provided in the option object
+        let audioReplays = 0;
+        let actualAnswer = option;
+        
+        if (typeof option === 'object' && option.answer !== undefined && option.audioReplays !== undefined) {
+            audioReplays = option.audioReplays;
+            actualAnswer = option.answer;
+        }
+        
+        let isCorrect = actualAnswer === currentQuestion.correctAnswer;
+        
+        // Minigames, APD tests, and interactive assessments are considered correct if completed
+        if (currentQuestion.type === 'minigame' || currentQuestion.type === 'apd-test' || currentQuestion.type === 'interactive-assessment') {
             isCorrect = true;
         }
 
@@ -329,9 +381,48 @@ export default function QuizPage() {
         const difficulty = currentQuestion.difficulty || 'medium';
 
         // Update answers
+        
+        // Record metrics based on question type
+        if (currentQuestion.type === 'minigame' && typeof option === 'object') {
+            recordMinigameResult({
+                gameType: option.gameType || currentQuestion.minigameType || 'unknown',
+                score: option.score || 0,
+                maxScore: option.maxScore || 0,
+                accuracy: option.accuracy || 0,
+                completionTime: option.completionTime || 0,
+                sequenceLength: option.sequenceLength || null,
+                errors: option.errors || 0,
+            });
+        } else if (currentQuestion.type === 'apd-test' && typeof option === 'object') {
+            recordAPDResult({
+                testType: option.testType || 'unknown',
+                score: option.score || 0,
+                accuracy: option.accuracy || 0,
+                audioReplays: option.audioReplays || 0,
+                responseTime: option.responseTime || 0,
+                wordsCorrect: option.wordsCorrect || 0,
+                wordsTotal: option.wordsTotal || 0,
+            });
+        } else if (currentQuestion.type === 'interactive-assessment' && typeof option === 'object') {
+            recordInteractiveResult({
+                section: option.section || 'hand-motor-assessment',
+                duration: option.duration || 0,
+                completionRate: option.completionRate || 0,
+                averageAccuracy: option.averageAccuracy || 0,
+                fingerCountingAccuracy: option.fingerCountingAccuracy || null,
+                handLateralityAccuracy: option.handLateralityAccuracy || null,
+                handPositionAccuracy: option.handPositionAccuracy || null,
+                taskResults: option.taskResults || [],
+            });
+        }
+        
+        // Record the question response for all types (pass audio replays)
+        recordQuestionResponse(currentQuestion, actualAnswer, isCorrect, audioReplays);
+        
+        // Update answers (store the actual answer value, not the object)
         setAnswers((prev) => ({
             ...prev,
-            [currentQuestion.id]: option,
+            [currentQuestion.id]: actualAnswer,
         }));
 
         // Track if answer was correct
@@ -393,16 +484,124 @@ export default function QuizPage() {
         }
     };
 
-    const handleFinish = () => {
+    const handleFinish = async () => {
         setIsCompleted(true);
+        
+        // Stop face tracking and save metrics
+        const faceTrackingSummary = stopFaceTrackingSession();
+        console.log('📷 Face tracking session ended:', faceTrackingSummary);
+        
+        // Save face tracking metrics to user data
+        if (faceTrackingSummary) {
+            updateFaceTrackingMetrics(faceTrackingSummary);
+        }
+        
+        // End quiz session and save all metrics to localStorage
+        const sessionResults = endQuizSession();
+        console.log('Quiz session ended with metrics:', sessionResults);
+        
         // Calculate final score
         const correctCount = Object.values(answerResults).filter(r => r === true).length;
         console.log('Quiz Completed', {
             answers,
             answerResults,
             score: `${correctCount}/${Object.keys(answerResults).length}`,
-            performance
+            performance,
+            faceTracking: faceTrackingSummary
         });
+        
+        // Send data to Flask for prediction
+        await sendDataToFlask();
+    };
+    
+    /**
+     * Send user data to Flask server for risk prediction
+     */
+    const sendDataToFlask = async () => {
+        try {
+            setIsSendingToFlask(true);
+            setFlaskError(null);
+            
+            console.log('📤 Sending data to Flask server...');
+            
+            // Get username from credentials (this will be the primary key in database)
+            const username = getUserCredential();
+            console.log('📧 Using username as credential:', username);
+            
+            // Get current user data from localStorage
+            const currentUserData = getUserData();
+            if (!currentUserData) {
+                throw new Error('No user data found');
+            }
+            
+            // Transform data to Flask format
+            const flaskData = transformUserDataForFlask(currentUserData);
+            
+            // Send prediction request with username as credential (primary key)
+            const result = await sendPredictionRequest(flaskData, username);
+            
+            if (!result.success) {
+                throw new Error(result.error || 'Prediction failed');
+            }
+            
+            // Store prediction results
+            if (result.data.prediction) {
+                setFlaskPrediction(result.data.prediction);
+                
+                // Update risk assessment in localStorage
+                updateRiskAssessment(result.data.prediction);
+                
+                console.log('✅ Flask prediction received and stored:', result.data.prediction);
+                
+                // Wait a moment to show success, then redirect to dashboard
+                setTimeout(() => {
+                    router.push('/dashboard');
+                }, 1500);
+            } else {
+                // If no prediction, still redirect after a delay
+                setTimeout(() => {
+                    router.push('/dashboard');
+                }, 1500);
+            }
+            
+        } catch (error) {
+            console.error('❌ Flask prediction error:', error);
+            setFlaskError(error.message);
+            
+            // Still redirect to dashboard even if Flask fails
+            // Dashboard will show appropriate message
+            setTimeout(() => {
+                router.push('/dashboard');
+            }, 3000);
+        } finally {
+            setIsSendingToFlask(false);
+        }
+    };
+    
+    /**
+     * Handle skip quiz button - for testing
+     */
+    const handleSkipQuiz = async () => {
+        if (!confirm('Skip quiz and test Flask integration with random data?')) {
+            return;
+        }
+        
+        setIsLoading(true);
+        try {
+            const result = await skipQuizAndTest();
+            
+            if (result.success) {
+                // Redirect to dashboard to see results
+                alert('✅ Test successful! Redirecting to dashboard...');
+                router.push('/dashboard');
+            } else {
+                alert('❌ Test failed: ' + result.error);
+            }
+        } catch (error) {
+            alert('❌ Test error: ' + error.message);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // Calculate score
@@ -468,6 +667,7 @@ export default function QuizPage() {
             <div style={quizStyles.container}>
                 <FloatingShapes />
                 <style jsx global>{`
+                    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
                     @keyframes confetti { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
                     @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.3); } 100% { transform: scale(1); opacity: 1; } }
@@ -515,7 +715,87 @@ export default function QuizPage() {
                     <p style={quizStyles.completedText}>
                         Completed in {formatTime(elapsedTime)}
                     </p>
-                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    
+                    {/* Flask Prediction Results */}
+                    {isSendingToFlask && (
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '16px',
+                            backgroundColor: '#e0e7ff',
+                            borderRadius: '12px',
+                            marginTop: '16px',
+                        }}>
+                            <Loader2 size={24} color="#6366f1" style={{ animation: 'spin 1s linear infinite' }} />
+                            <span style={{ color: '#4338ca', fontWeight: 600 }}>
+                                Analyzing results with AI...
+                            </span>
+                        </div>
+                    )}
+                    
+                    {flaskPrediction && !isSendingToFlask && (
+                        <div style={{
+                            marginTop: '16px',
+                            padding: '20px',
+                            backgroundColor: '#f0fdf4',
+                            borderRadius: '16px',
+                            border: '2px solid #86efac',
+                            maxWidth: '500px',
+                        }}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                marginBottom: '12px',
+                            }}>
+                                <FlaskConical size={24} color="#22c55e" />
+                                <h3 style={{ margin: 0, color: '#166534', fontSize: '18px', fontWeight: 700 }}>
+                                    AI Risk Assessment
+                                </h3>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px', fontSize: '14px' }}>
+                                {Object.entries(flaskPrediction).map(([key, value]) => {
+                                    const label = key.replace('risk_', '').replace(/_/g, ' ');
+                                    const riskLevel = value < 0.3 ? 'Low' : value < 0.7 ? 'Medium' : 'High';
+                                    const color = value < 0.3 ? '#22c55e' : value < 0.7 ? '#f59e0b' : '#ef4444';
+                                    return (
+                                        <div key={key} style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '8px 12px',
+                                            backgroundColor: 'white',
+                                            borderRadius: '8px',
+                                        }}>
+                                            <span style={{ textTransform: 'capitalize', color: '#374151' }}>{label}</span>
+                                            <span style={{ fontWeight: 700, color }}>{(value * 100).toFixed(1)}% ({riskLevel})</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {flaskError && !isSendingToFlask && (
+                        <div style={{
+                            marginTop: '16px',
+                            padding: '16px',
+                            backgroundColor: '#fef2f2',
+                            borderRadius: '12px',
+                            border: '2px solid #fca5a5',
+                            maxWidth: '500px',
+                        }}>
+                            <p style={{ margin: 0, color: '#991b1b', fontSize: '14px' }}>
+                                <strong>Unable to get AI assessment:</strong> {flaskError}
+                            </p>
+                            <p style={{ margin: '8px 0 0 0', color: '#7f1d1d', fontSize: '12px' }}>
+                                Make sure the Flask server is running on http://localhost:5000
+                            </p>
+                        </div>
+                    )}
+                    
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '16px' }}>
                         <Link href="/" style={quizStyles.homeButton}>
                             Return Home
                         </Link>
@@ -535,6 +815,17 @@ export default function QuizPage() {
                 @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(10deg); } }
             `}</style>
 
+            
+            {/* Face Tracking Overlay - Always Active */}
+            <FaceTrackingOverlay
+                isActive={isFaceTrackingEnabled && !isCompleted}
+                showPreview={true}
+                showMetrics={!isFaceTrackingMinimized}
+                minimized={isFaceTrackingMinimized}
+                position="top-right"
+                onAttentionChange={(metrics) => setCurrentAttention(metrics)}
+            />
+            
             <FloatingShapes />
 
             {/* Header with Timer */}
@@ -544,6 +835,66 @@ export default function QuizPage() {
                     <span style={quizStyles.logoText}>Leadis</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    {/* Skip Quiz Button (for testing) */}
+                    <button
+                        onClick={handleSkipQuiz}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '8px 16px',
+                            borderRadius: '20px',
+                            border: 'none',
+                            backgroundColor: '#fbbf24',
+                            color: '#78350f',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            fontWeight: 600,
+                            fontSize: '14px',
+                        }}
+                        title="Skip quiz and test Flask integration with random data"
+                        onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#f59e0b';
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = '#fbbf24';
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                        }}
+                    >
+                        <Zap size={18} />
+                        <span>Test Flask</span>
+                    </button>
+                    {/* Face Tracking Toggle */}
+                    <button
+                        onClick={() => setIsFaceTrackingMinimized(!isFaceTrackingMinimized)}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '50%',
+                            border: 'none',
+                            backgroundColor: isFaceTrackingEnabled ? 
+                                (currentAttention?.attentionScore > 70 ? '#dcfce7' : 
+                                 currentAttention?.attentionScore > 40 ? '#fef3c7' : '#fee2e2') : 
+                                '#f1f5f9',
+                            color: isFaceTrackingEnabled ? 
+                                (currentAttention?.attentionScore > 70 ? '#22c55e' : 
+                                 currentAttention?.attentionScore > 40 ? '#f59e0b' : '#ef4444') : 
+                                '#94a3b8',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                        }}
+                        title={isFaceTrackingMinimized ? 'Expand face tracking' : 'Minimize face tracking'}
+                    >
+                        {isFaceTrackingEnabled ? <Camera size={22} /> : <CameraOff size={22} />}
+                    </button>
                     <button
                         onClick={toggleMute}
                         style={{

@@ -41,6 +41,17 @@ export default function AudioQuizContent({
     const handleAudioEnd = () => {
         setIsPlaying(false);
     };
+    
+    // Handle answer selection with play count
+    const handleAnswerSelection = (option) => {
+        // Create an object with answer and metadata
+        const answerData = {
+            answer: option,
+            audioReplays: playCount,
+            type: 'audio'
+        };
+        onAnswerSelect(answerData);
+    };
 
     return (
         <motion.div
@@ -136,7 +147,9 @@ export default function AudioQuizContent({
                 {/* Options List */}
                 <div style={contentStyles.optionsList}>
                     {question.options?.map((option, index) => {
-                        const isSelected = selectedAnswer === option;
+                        // Handle both string and object selectedAnswer
+                        const selectedValue = typeof selectedAnswer === 'object' ? selectedAnswer?.answer : selectedAnswer;
+                        const isSelected = selectedValue === option;
                         const isHovered = hoveredOption === index;
                         
                         return (
@@ -170,7 +183,7 @@ export default function AudioQuizContent({
                                     name={`question-${question.id}-${index}`}
                                     value={option}
                                     checked={isSelected}
-                                    onChange={() => onAnswerSelect(option)}
+                                    onChange={() => handleAnswerSelection(option)}
                                     style={{ display: 'none' }}
                                 />
                                 <span style={{

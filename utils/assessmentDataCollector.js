@@ -100,14 +100,11 @@ export const recordFocusData = (focusData) => {
   const records = window.focusRecords;
   const mean_focus_duration_sec = records.reduce((sum, r) => sum + r.focusDuration, 0) / records.length;
   
-  // Calculate attention dropoff (negative slope means decreasing attention)
-  const attention_dropoff_slope = calculateSlope(records.map(r => r.focusDuration));
-  
   updateAssessmentMetrics({
     attentionMetrics: {
       mean_focus_duration_sec,
-      attention_dropoff_slope,
-      attention_span_average: mean_focus_duration_sec
+      attention_span_average: mean_focus_duration_sec,
+      random_interaction_rate: null // Requires click/touch tracking
     }
   });
 };
@@ -116,60 +113,21 @@ export const recordFocusData = (focusData) => {
  * Record memory task results
  * @param {Object} memoryData - Memory task data
  * @param {number} memoryData.sequenceLength - Length of sequence attempted
- * @param {number} memoryData.errors - Number of order errors
  */
 export const recordMemoryData = (memoryData) => {
-  const { sequenceLength, errors } = memoryData;
+  const { sequenceLength } = memoryData;
   
   if (!window.memoryRecords) {
     window.memoryRecords = [];
   }
-  window.memoryRecords.push({ sequenceLength, errors });
+  window.memoryRecords.push({ sequenceLength });
   
   const records = window.memoryRecords;
   const max_sequence_length = Math.max(...records.map(r => r.sequenceLength));
-  const totalAttempts = records.length;
-  const totalErrors = records.reduce((sum, r) => sum + r.errors, 0);
-  const sequence_order_error_rate = totalErrors / totalAttempts;
   
   updateAssessmentMetrics({
     memoryMetrics: {
-      max_sequence_length,
-      sequence_order_error_rate
-    }
-  });
-};
-
-/**
- * Record reading performance
- * @param {Object} readingData - Reading performance data
- * @param {number} readingData.wordsRead - Number of words read
- * @param {number} readingData.timeSeconds - Time taken in seconds
- * @param {number} readingData.accuracy - Reading accuracy (0-1)
- * @param {number} readingData.reversals - Number of letter reversals
- */
-export const recordReadingData = (readingData) => {
-  const { wordsRead, timeSeconds, accuracy, reversals = 0 } = readingData;
-  
-  const reading_speed_wpm = (wordsRead / timeSeconds) * 60;
-  
-  if (!window.readingRecords) {
-    window.readingRecords = [];
-  }
-  window.readingRecords.push({ speed: reading_speed_wpm, accuracy, reversals });
-  
-  const records = window.readingRecords;
-  const avgSpeed = records.reduce((sum, r) => sum + r.speed, 0) / records.length;
-  const avgAccuracy = records.reduce((sum, r) => sum + r.accuracy, 0) / records.length;
-  const totalWords = records.reduce((sum, r) => sum + (r.speed / 60), 0);
-  const totalReversals = records.reduce((sum, r) => sum + r.reversals, 0);
-  const letter_reversal_rate = totalReversals / totalWords;
-  
-  updateAssessmentMetrics({
-    readingMetrics: {
-      reading_speed_wpm: avgSpeed,
-      reading_accuracy: avgAccuracy,
-      letter_reversal_rate
+      max_sequence_length
     }
   });
 };
@@ -178,25 +136,21 @@ export const recordReadingData = (readingData) => {
  * Record visual processing data
  * @param {Object} visualData - Visual processing data
  * @param {number} visualData.searchTime - Time to find target (ms)
- * @param {boolean} visualData.leftRightError - Whether there was left/right confusion
  */
 export const recordVisualData = (visualData) => {
-  const { searchTime, leftRightError = false } = visualData;
+  const { searchTime } = visualData;
   
   if (!window.visualRecords) {
     window.visualRecords = [];
   }
-  window.visualRecords.push({ searchTime, leftRightError });
+  window.visualRecords.push({ searchTime });
   
   const records = window.visualRecords;
   const visual_search_time_ms = records.reduce((sum, r) => sum + r.searchTime, 0) / records.length;
-  const confusions = records.filter(r => r.leftRightError).length;
-  const left_right_confusion_rate = confusions / records.length;
   
   updateAssessmentMetrics({
     visualProcessing: {
-      visual_search_time_ms,
-      left_right_confusion_rate
+      visual_search_time_ms
     }
   });
 };
@@ -222,7 +176,8 @@ export const recordAuditoryData = (auditoryData) => {
   updateAssessmentMetrics({
     auditoryProcessing: {
       auditory_processing_accuracy,
-      average_audio_replays
+      average_audio_replays,
+      pref_auditory: null // Learning preference calculation can be added
     }
   });
 };
@@ -243,10 +198,9 @@ export const calculateRiskScores = () => {
     risk_writing: calculateWritingRisk(metrics),
     risk_attention: calculateAttentionRisk(metrics),
     risk_working_memory: calculateMemoryRisk(metrics),
-    risk_expressive_language: calculateExpressiveLanguageRisk(metrics),
     risk_receptive_language: calculateReceptiveLanguageRisk(metrics),
     risk_visual_processing: calculateVisualProcessingRisk(metrics),
-    risk_motor_coordination: 0.0 // Not yet implemented
+    risk_motor_coordination: calculateMotorRisk(metrics)
   };
   
   updateRiskAssessment(riskScores);
@@ -255,30 +209,37 @@ export const calculateRiskScores = () => {
 
 // Helper functions for risk calculation (simplified examples)
 const calculateReadingRisk = (metrics) => {
-  const { readingMetrics } = metrics;
-  if (!readingMetrics.reading_accuracy) return null;
+  const { responseMetrics } = metrics;
+  if (!responseMetrics.mean_response_accuracy) return null;
   
   let risk = 0;
-  if (readingMetrics.reading_accuracy < 0.7) risk += 0.4;
-  if (readingMetrics.reading_speed_wpm < 80) risk += 0.3;
-  if (readingMetrics.letter_reversal_rate > 0.1) risk += 0.3;
+  // Use general response accuracy as proxy for reading risk
+  if (responseMetrics.mean_response_accuracy < 0.7) risk += 0.6;
+  if (responseMetrics.mean_response_time_ms > 10000) risk += 0.4;
   
   return Math.min(risk, 1.0);
 };
 
 const calculateWritingRisk = (metrics) => {
-  // Implement based on your metrics
-  return 0.0;
+  const { motorCoordination, responseMetrics } = metrics;
+  if (!motorCoordination || !responseMetrics.mean_response_accuracy) return null;
+  
+  let risk = 0;
+  // Use motor coordination and response metrics as proxy
+  if (motorCoordination.hand_laterality_accuracy && motorCoordination.hand_laterality_accuracy < 0.8) risk += 0.5;
+  if (responseMetrics.mean_response_accuracy < 0.7) risk += 0.5;
+  
+  return Math.min(risk, 1.0);
 };
 
 const calculateAttentionRisk = (metrics) => {
-  const { attentionMetrics } = metrics;
+  const { attentionMetrics, taskPerformance } = metrics;
   if (!attentionMetrics.mean_focus_duration_sec) return null;
   
   let risk = 0;
   if (attentionMetrics.mean_focus_duration_sec < 60) risk += 0.4;
-  if (attentionMetrics.attention_dropoff_slope < -0.5) risk += 0.3;
-  if (attentionMetrics.random_interaction_rate > 0.3) risk += 0.3;
+  if (attentionMetrics.random_interaction_rate && attentionMetrics.random_interaction_rate > 0.3) risk += 0.3;
+  if (taskPerformance.task_completion_rate < 0.7) risk += 0.3;
   
   return Math.min(risk, 1.0);
 };
@@ -288,19 +249,8 @@ const calculateMemoryRisk = (metrics) => {
   if (!memoryMetrics.max_sequence_length) return null;
   
   let risk = 0;
-  if (memoryMetrics.max_sequence_length < 4) risk += 0.5;
-  if (memoryMetrics.sequence_order_error_rate > 0.3) risk += 0.5;
-  
-  return Math.min(risk, 1.0);
-};
-
-const calculateExpressiveLanguageRisk = (metrics) => {
-  const { speechMetrics } = metrics;
-  if (!speechMetrics.speech_rate_wpm) return null;
-  
-  let risk = 0;
-  if (speechMetrics.speech_rate_wpm < 60) risk += 0.5;
-  if (speechMetrics.hesitation_frequency > 20) risk += 0.5;
+  if (memoryMetrics.max_sequence_length < 4) risk += 1.0;
+  else if (memoryMetrics.max_sequence_length < 6) risk += 0.5;
   
   return Math.min(risk, 1.0);
 };
@@ -321,10 +271,33 @@ const calculateVisualProcessingRisk = (metrics) => {
   if (!visualProcessing.visual_search_time_ms) return null;
   
   let risk = 0;
-  if (visualProcessing.visual_search_time_ms > 5000) risk += 0.5;
-  if (visualProcessing.left_right_confusion_rate > 0.2) risk += 0.5;
+  if (visualProcessing.visual_search_time_ms > 5000) risk += 1.0;
+  else if (visualProcessing.visual_search_time_ms > 3000) risk += 0.5;
   
   return Math.min(risk, 1.0);
+};
+
+const calculateMotorRisk = (metrics) => {
+  const { motorCoordination } = metrics;
+  if (!motorCoordination) return null;
+  
+  let risk = 0;
+  let count = 0;
+  
+  if (motorCoordination.hand_laterality_accuracy !== null) {
+    if (motorCoordination.hand_laterality_accuracy < 0.7) risk += 0.4;
+    count++;
+  }
+  if (motorCoordination.finger_counting_accuracy !== null) {
+    if (motorCoordination.finger_counting_accuracy < 0.7) risk += 0.3;
+    count++;
+  }
+  if (motorCoordination.hand_position_accuracy !== null) {
+    if (motorCoordination.hand_position_accuracy < 0.7) risk += 0.3;
+    count++;
+  }
+  
+  return count > 0 ? Math.min(risk, 1.0) : null;
 };
 
 // Utility functions
@@ -335,23 +308,6 @@ const calculateStandardDeviation = (values) => {
   return Math.sqrt(variance);
 };
 
-const calculateSlope = (values) => {
-  const n = values.length;
-  const xValues = Array.from({ length: n }, (_, i) => i);
-  const xMean = xValues.reduce((a, b) => a + b, 0) / n;
-  const yMean = values.reduce((a, b) => a + b, 0) / n;
-  
-  let numerator = 0;
-  let denominator = 0;
-  
-  for (let i = 0; i < n; i++) {
-    numerator += (xValues[i] - xMean) * (values[i] - yMean);
-    denominator += Math.pow(xValues[i] - xMean, 2);
-  }
-  
-  return denominator !== 0 ? numerator / denominator : 0;
-};
-
 /**
  * Clear all assessment records
  */
@@ -360,7 +316,6 @@ export const clearAssessmentRecords = () => {
   window.taskCompletions = [];
   window.focusRecords = [];
   window.memoryRecords = [];
-  window.readingRecords = [];
   window.visualRecords = [];
   window.auditoryRecords = [];
 };

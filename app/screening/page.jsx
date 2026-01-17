@@ -18,7 +18,9 @@ import {
   Check,
   Smile,
   Loader2,
-  LogOut
+  LogOut,
+  BarChart3,
+  FileImage
 } from 'lucide-react';
 import { 
   getUserData, 
@@ -29,6 +31,7 @@ import {
 } from '@/utils/userDataManager';
 import { getUserCredentials, isUserLoggedIn, clearUserCredentials } from '@/utils/userEncryption';
 import { logoutMagic } from '@/utils/magicAuth';
+import NotebookUploadModal from '../components/NotebookUploadModal';
 
 // LocalStorage key for form data (legacy)
 const STORAGE_KEY = 'leadis_screening_form';
@@ -182,6 +185,26 @@ export default function ScreeningForm() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [userCredentials, setUserCredentials] = useState(null);
+  const [hasResults, setHasResults] = useState(false);
+  
+  // Notebook upload modal state
+  const [showNotebookModal, setShowNotebookModal] = useState(false);
+  const [notebookAnalysisComplete, setNotebookAnalysisComplete] = useState(false);
+
+  // Check if user has completed assessment and has results
+  useEffect(() => {
+    const checkForResults = () => {
+      const userData = getUserData();
+      if (userData && userData.riskAssessment) {
+        const hasRiskData = Object.values(userData.riskAssessment).some(v => v !== null && v !== undefined && v > 0);
+        setHasResults(hasRiskData);
+      }
+    };
+    
+    if (!isCheckingAuth) {
+      checkForResults();
+    }
+  }, [isCheckingAuth, isLoaded]);
 
   // Check for user credentials on mount - redirect to login if not available
   useEffect(() => {
@@ -265,6 +288,12 @@ export default function ScreeningForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    // Show notebook upload modal before proceeding to assessment
+    setShowNotebookModal(true);
+  };
+  
+  // Handle proceeding to assessment after notebook modal
+  const proceedToAssessment = () => {
     // Reset selectedTests to empty array since user completed screening (not specific area testing)
     const formDataWithReset = {
       ...formData,
@@ -292,6 +321,21 @@ export default function ScreeningForm() {
     
     // Navigate to quiz page
     router.push('/quiz');
+  };
+  
+  // Handle notebook analysis complete
+  const handleNotebookComplete = (analysisResult) => {
+    console.log('📝 Notebook analysis complete:', analysisResult);
+    setNotebookAnalysisComplete(true);
+    setShowNotebookModal(false);
+    proceedToAssessment();
+  };
+  
+  // Handle notebook skip
+  const handleNotebookSkip = () => {
+    console.log('📝 Notebook upload skipped');
+    setShowNotebookModal(false);
+    proceedToAssessment();
   };
 
   // Clear saved form data
@@ -346,24 +390,37 @@ export default function ScreeningForm() {
             </div>
             <span style={styles.logoText}>Leadis</span>
           </div>
-          <motion.button
-            onClick={async () => {
-              // Logout from Magic
-              await logoutMagic();
-              
-              // Clear all localStorage
-              localStorage.clear();
-              
-              // Redirect to home page
-              window.location.href = '/';
-            }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            style={styles.logoutButton}
-          >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </motion.button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Link href="/dashboard" style={{ textDecoration: 'none' }}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                style={styles.dashboardButton}
+                title="View your assessment results"
+              >
+                <BarChart3 size={18} />
+                <span>My Results</span>
+              </motion.button>
+            </Link>
+            <motion.button
+              onClick={async () => {
+                // Logout from Magic
+                await logoutMagic();
+                
+                // Clear all localStorage
+                localStorage.clear();
+                
+                // Redirect to home page
+                window.location.href = '/';
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={styles.logoutButton}
+            >
+              <LogOut size={18} />
+              <span>Logout</span>
+            </motion.button>
+          </div>
         </div>
       </header>
 
@@ -1229,8 +1286,33 @@ export default function ScreeningForm() {
                   The assessment takes approximately 15-20 minutes to complete.
                 </p>
               </div>
+              
+              {/* Notebook Upload Info */}
+              <div style={styles.notebookInfoBox}>
+                <div style={styles.notebookInfoHeader}>
+                  <FileImage size={24} color={colors.accent} />
+                  <div>
+                    <h4 style={styles.notebookInfoTitle}>Optional: Upload a Notebook Page</h4>
+                    <p style={styles.notebookInfoText}>
+                      For more accurate results, you can upload a photo of your child's handwriting. 
+                      This helps us analyze fine motor skills and writing patterns.
+                    </p>
+                  </div>
+                </div>
+                <p style={styles.notebookNote}>
+                  📷 You'll be prompted to upload after clicking "Start Screening"
+                </p>
+              </div>
             </div>
           )}
+          
+          {/* Notebook Upload Modal */}
+          <NotebookUploadModal
+            isOpen={showNotebookModal}
+            onClose={() => setShowNotebookModal(false)}
+            onComplete={handleNotebookComplete}
+            onSkip={handleNotebookSkip}
+          />
 
           {/* Navigation Buttons */}
           <div style={styles.buttonGroup}>
@@ -1330,6 +1412,21 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '24px',
+  },
+  dashboardButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    backgroundColor: colors.primary,
+    color: colors.white,
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '50px',
+    fontSize: '14px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    boxShadow: '0 4px 15px rgba(34, 197, 94, 0.25)',
   },
   logoutButton: {
     display: 'flex',
@@ -1659,6 +1756,36 @@ const styles = {
     fontSize: '14px',
     color: colors.gray,
     lineHeight: 1.6,
+  },
+  notebookInfoBox: {
+    marginTop: '24px',
+    padding: '20px 24px',
+    backgroundColor: '#fffbeb',
+    borderRadius: '16px',
+    border: '2px solid #fcd34d',
+  },
+  notebookInfoHeader: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '16px',
+  },
+  notebookInfoTitle: {
+    fontSize: '16px',
+    fontWeight: 700,
+    color: '#92400e',
+    margin: '0 0 6px 0',
+  },
+  notebookInfoText: {
+    fontSize: '14px',
+    color: '#a16207',
+    margin: 0,
+    lineHeight: 1.5,
+  },
+  notebookNote: {
+    fontSize: '13px',
+    color: '#b45309',
+    margin: '12px 0 0 40px',
+    fontWeight: 500,
   },
   buttonGroup: {
     display: 'flex',
