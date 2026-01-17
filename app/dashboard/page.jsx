@@ -90,7 +90,6 @@ const predictionData = {
         { name: 'Writing & Spelling', probability: 65, color: colors.blue },     // risk_writing
         { name: 'Focus & Attention', probability: 82, color: colors.purple },    // risk_attention
         { name: 'Working Memory', probability: 70, color: colors.orange },       // risk_working_memory
-        { name: 'Speaking & Expression', probability: 45, color: colors.pink },  // risk_expressive_language
         { name: 'Understanding Language', probability: 40, color: colors.cyan }, // risk_receptive_language
         { name: 'Visual Processing', probability: 55, color: colors.accent },    // risk_visual_processing
         { name: 'Motor Coordination', probability: 35, color: colors.red },      // risk_motor_coordination
@@ -241,7 +240,7 @@ export default function DashboardPage() {
     const processPredictionData = (prediction) => {
         console.log('Processing prediction data:', prediction);
         
-        // Map the prediction to the breakdown format
+        // Map the prediction to the breakdown format (7 outputs from model)
         const breakdown = [
             { 
                 name: 'Reading Skills', 
@@ -287,7 +286,7 @@ export default function DashboardPage() {
             },
         ];
 
-        // Calculate overall confidence (average of all risks)
+        // Calculate overall confidence (average of all 7 risks)
         const riskValues = [
             prediction.risk_reading || 0,
             prediction.risk_writing || 0,

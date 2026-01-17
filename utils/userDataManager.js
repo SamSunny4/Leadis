@@ -336,6 +336,67 @@ export const updateRiskAssessment = (riskScores) => {
 };
 
 /**
+ * Update face tracking attention metrics
+ * @param {Object} faceMetrics - Face tracking metrics
+ * @returns {boolean} Success status
+ */
+export const updateFaceTrackingMetrics = (faceMetrics) => {
+  const userData = getUserData() || initializeUserData();
+  
+  // Update attention metrics from face tracking
+  if (faceMetrics.meanFocusDurationSec !== null && faceMetrics.meanFocusDurationSec !== undefined) {
+    userData.assessmentMetrics.attentionMetrics.mean_focus_duration_sec = 
+      faceMetrics.meanFocusDurationSec;
+  }
+  
+  if (faceMetrics.meanAttentionScore !== null && faceMetrics.meanAttentionScore !== undefined) {
+    // Convert attention score (0-100) to attention span average (0-1)
+    userData.assessmentMetrics.attentionMetrics.attention_span_average = 
+      faceMetrics.meanAttentionScore / 100;
+  }
+  
+  if (faceMetrics.randomInteractionRate !== null && faceMetrics.randomInteractionRate !== undefined) {
+    userData.assessmentMetrics.attentionMetrics.random_interaction_rate = 
+      faceMetrics.randomInteractionRate;
+  }
+  
+  // Store additional face tracking data for reference
+  if (!userData.faceTrackingData) {
+    userData.faceTrackingData = {};
+  }
+  
+  userData.faceTrackingData = {
+    ...userData.faceTrackingData,
+    lastUpdated: new Date().toISOString(),
+    sessionDurationMs: faceMetrics.sessionDurationMs || null,
+    blinkCount: faceMetrics.blinkCount || null,
+    lookAwayCount: faceMetrics.lookAwayCount || null,
+    lookAwayDurationMs: faceMetrics.lookAwayDurationMs || null,
+    gazeOnScreenRatio: faceMetrics.gazeOnScreenRatio || null,
+    faceDetectionRate: faceMetrics.faceDetectionRate || null,
+    engagementDistribution: faceMetrics.engagementDistribution || null,
+  };
+  
+  console.log('👁️ Face tracking metrics updated:', faceMetrics);
+  
+  return saveUserData(userData);
+};
+
+/**
+ * Get face tracking data summary
+ * @returns {Object|null} Face tracking data or null if not found
+ */
+export const getFaceTrackingData = () => {
+  const userData = getUserData();
+  if (!userData) return null;
+  
+  return {
+    attentionMetrics: userData.assessmentMetrics?.attentionMetrics || null,
+    faceTrackingData: userData.faceTrackingData || null,
+  };
+};
+
+/**
  * Clear all user data
  * @returns {boolean} Success status
  */
@@ -372,6 +433,69 @@ export const getUserDataSummary = () => {
     age_months: userData.demographicInfo.age_months,
     gender: userData.demographicInfo.gender,
     hasAssessmentData: Object.values(userData.assessmentMetrics.responseMetrics).some(v => v !== null),
-    hasRiskScores: Object.values(userData.riskAssessment).some(v => v !== null)
+    hasRiskScores: Object.values(userData.riskAssessment).some(v => v !== null),
+    hasNotebookAnalysis: userData.notebookAnalysis !== null && userData.notebookAnalysis !== undefined
   };
 };
+
+/**
+ * Save notebook analysis results
+ * @param {Object} analysisResult - Results from handwriting analysis
+ * @returns {boolean} Success status
+ */
+export const saveNotebookAnalysis = (analysisResult) => {
+  const userData = getUserData() || initializeUserData();
+  
+  // Store notebook analysis data
+  userData.notebookAnalysis = {
+    timestamp: new Date().toISOString(),
+    readabilityScore: analysisResult.readabilityScore,
+    confidence: analysisResult.confidence,
+    wordCount: analysisResult.wordCount,
+    lineCount: analysisResult.lineCount,
+    metrics: analysisResult.metrics || {},
+    dysgraphiaIndicators: analysisResult.dysgraphiaIndicators || {},
+    findings: analysisResult.findings || [],
+  };
+  
+  // Update risk assessment based on notebook analysis
+  if (analysisResult.dysgraphiaIndicators) {
+    const indicators = analysisResult.dysgraphiaIndicators;
+    
+    // Map notebook findings to risk scores
+    if (indicators.writingRisk !== undefined) {
+      userData.riskAssessment.risk_writing = Math.max(
+        userData.riskAssessment.risk_writing || 0,
+        indicators.writingRisk
+      );
+    }
+    
+    if (indicators.motorCoordinationRisk !== undefined) {
+      userData.riskAssessment.risk_motor_coordination = Math.max(
+        userData.riskAssessment.risk_motor_coordination || 0,
+        indicators.motorCoordinationRisk
+      );
+    }
+    
+    if (indicators.visualProcessingRisk !== undefined) {
+      userData.riskAssessment.risk_visual_processing = Math.max(
+        userData.riskAssessment.risk_visual_processing || 0,
+        indicators.visualProcessingRisk
+      );
+    }
+  }
+  
+  console.log('📝 Notebook analysis saved to user data:', analysisResult);
+  
+  return saveUserData(userData);
+};
+
+/**
+ * Get notebook analysis data
+ * @returns {Object|null} Notebook analysis data or null if not found
+ */
+export const getNotebookAnalysis = () => {
+  const userData = getUserData();
+  if (!userData) return null;
+  
+  return userData.notebookAnalysis || null;};

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Clock, CheckCircle, Star, Loader2, RefreshCw, Volume2, VolumeX, FlaskConical, Zap } from 'lucide-react';
+import { Clock, CheckCircle, Star, Loader2, RefreshCw, Volume2, VolumeX, FlaskConical, Zap, Camera, CameraOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -14,6 +14,7 @@ import {
     getUserScreeningData
 } from './services/questionManager';
 import QuizContent from './components/QuizContent';
+import FaceTrackingOverlay from './components/FaceTrackingOverlay';
 import { normalizeQuestion, QuestionType } from './schema/quizSchema';
 import { colors, quizStyles } from './styles/quizStyles';
 import {
@@ -25,10 +26,11 @@ import {
     recordInteractiveResult,
     endQuizSession,
 } from '../../utils/quizMetricsTracker';
-import { getUserData, updateRiskAssessment } from '../../utils/userDataManager';
+import { getUserData, updateRiskAssessment, updateFaceTrackingMetrics } from '../../utils/userDataManager';
 import { transformUserDataForFlask } from '../../utils/dataTransformer';
 import { sendPredictionRequest, getUserCredential, checkFlaskHealth } from '../../utils/flaskApiService';
 import { skipQuizAndTest } from '../../utils/quizTestUtils';
+import { stopFaceTrackingSession, getFaceTrackingSummary } from '../../utils/faceTrackingService';
 
 // Fun floating shapes for background
 const FloatingShapes = () => {
@@ -146,6 +148,11 @@ export default function QuizPage() {
     const [isSendingToFlask, setIsSendingToFlask] = useState(false);
     const [userData, setUserData] = useState(null);
     const [performance, setPerformance] = useState(null);
+    
+    // Face tracking state
+    const [isFaceTrackingEnabled, setIsFaceTrackingEnabled] = useState(true);
+    const [isFaceTrackingMinimized, setIsFaceTrackingMinimized] = useState(true);
+    const [currentAttention, setCurrentAttention] = useState(null);
     
     // Background music refs
     const audioRef = useRef(null);
@@ -470,6 +477,15 @@ export default function QuizPage() {
     const handleFinish = async () => {
         setIsCompleted(true);
         
+        // Stop face tracking and save metrics
+        const faceTrackingSummary = stopFaceTrackingSession();
+        console.log('📷 Face tracking session ended:', faceTrackingSummary);
+        
+        // Save face tracking metrics to user data
+        if (faceTrackingSummary) {
+            updateFaceTrackingMetrics(faceTrackingSummary);
+        }
+        
         // End quiz session and save all metrics to localStorage
         const sessionResults = endQuizSession();
         console.log('Quiz session ended with metrics:', sessionResults);
@@ -480,7 +496,8 @@ export default function QuizPage() {
             answers, 
             answerResults,
             score: `${correctCount}/${Object.keys(answerResults).length}`,
-            performance
+            performance,
+            faceTracking: faceTrackingSummary
         });
         
         // Send data to Flask for prediction
@@ -788,6 +805,16 @@ export default function QuizPage() {
                 @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(10deg); } }
             `}</style>
             
+            {/* Face Tracking Overlay - Always Active */}
+            <FaceTrackingOverlay
+                isActive={isFaceTrackingEnabled && !isCompleted}
+                showPreview={true}
+                showMetrics={!isFaceTrackingMinimized}
+                minimized={isFaceTrackingMinimized}
+                position="top-right"
+                onAttentionChange={(metrics) => setCurrentAttention(metrics)}
+            />
+            
             <FloatingShapes />
             
             {/* Header with Timer */}
@@ -829,6 +856,33 @@ export default function QuizPage() {
                     >
                         <Zap size={18} />
                         <span>Test Flask</span>
+                    </button>
+                    {/* Face Tracking Toggle */}
+                    <button
+                        onClick={() => setIsFaceTrackingMinimized(!isFaceTrackingMinimized)}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '50%',
+                            border: 'none',
+                            backgroundColor: isFaceTrackingEnabled ? 
+                                (currentAttention?.attentionScore > 70 ? '#dcfce7' : 
+                                 currentAttention?.attentionScore > 40 ? '#fef3c7' : '#fee2e2') : 
+                                '#f1f5f9',
+                            color: isFaceTrackingEnabled ? 
+                                (currentAttention?.attentionScore > 70 ? '#22c55e' : 
+                                 currentAttention?.attentionScore > 40 ? '#f59e0b' : '#ef4444') : 
+                                '#94a3b8',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                        }}
+                        title={isFaceTrackingMinimized ? 'Expand face tracking' : 'Minimize face tracking'}
+                    >
+                        {isFaceTrackingEnabled ? <Camera size={22} /> : <CameraOff size={22} />}
                     </button>
                     <button
                         onClick={toggleMute}

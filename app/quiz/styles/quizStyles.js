@@ -19,6 +19,7 @@ export const colors = {
     blue: '#60a5fa',
     cyan: '#22d3ee',
     red: '#f87171',
+    green: '#10b981',
 };
 
 // Fun gradient backgrounds for different question types
