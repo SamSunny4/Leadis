@@ -18,7 +18,8 @@ import {
   Check,
   Smile,
   Loader2,
-  LogOut
+  LogOut,
+  BarChart3
 } from 'lucide-react';
 import { 
   getUserData, 
@@ -182,6 +183,22 @@ export default function ScreeningForm() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [userCredentials, setUserCredentials] = useState(null);
+  const [hasResults, setHasResults] = useState(false);
+
+  // Check if user has completed assessment and has results
+  useEffect(() => {
+    const checkForResults = () => {
+      const userData = getUserData();
+      if (userData && userData.riskAssessment) {
+        const hasRiskData = Object.values(userData.riskAssessment).some(v => v !== null && v !== undefined && v > 0);
+        setHasResults(hasRiskData);
+      }
+    };
+    
+    if (!isCheckingAuth) {
+      checkForResults();
+    }
+  }, [isCheckingAuth, isLoaded]);
 
   // Check for user credentials on mount - redirect to login if not available
   useEffect(() => {
@@ -346,24 +363,37 @@ export default function ScreeningForm() {
             </div>
             <span style={styles.logoText}>Leadis</span>
           </div>
-          <motion.button
-            onClick={async () => {
-              // Logout from Magic
-              await logoutMagic();
-              
-              // Clear all localStorage
-              localStorage.clear();
-              
-              // Redirect to home page
-              window.location.href = '/';
-            }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            style={styles.logoutButton}
-          >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </motion.button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Link href="/dashboard" style={{ textDecoration: 'none' }}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                style={styles.dashboardButton}
+                title="View your assessment results"
+              >
+                <BarChart3 size={18} />
+                <span>My Results</span>
+              </motion.button>
+            </Link>
+            <motion.button
+              onClick={async () => {
+                // Logout from Magic
+                await logoutMagic();
+                
+                // Clear all localStorage
+                localStorage.clear();
+                
+                // Redirect to home page
+                window.location.href = '/';
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={styles.logoutButton}
+            >
+              <LogOut size={18} />
+              <span>Logout</span>
+            </motion.button>
+          </div>
         </div>
       </header>
 
@@ -1330,6 +1360,21 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '24px',
+  },
+  dashboardButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    backgroundColor: colors.primary,
+    color: colors.white,
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '50px',
+    fontSize: '14px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    boxShadow: '0 4px 15px rgba(34, 197, 94, 0.25)',
   },
   logoutButton: {
     display: 'flex',
