@@ -145,6 +145,7 @@ export default function WordRecognitionTest({ onComplete }) {
     const [hasPlayed, setHasPlayed] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [feedback, setFeedback] = useState(null);
+    const [playCount, setPlayCount] = useState(0); // Track audio replays
     const audioContextRef = useRef(null);
     const noiseNodeRef = useRef(null);
     const noiseGainRef = useRef(null);
@@ -226,6 +227,7 @@ export default function WordRecognitionTest({ onComplete }) {
         if (isPlaying) return;
         
         setIsPlaying(true);
+        setPlayCount(prev => prev + 1); // Increment play count
         
         try {
             if (audioContextRef.current?.state === 'suspended') {
@@ -273,7 +275,8 @@ export default function WordRecognitionTest({ onComplete }) {
             questionId: currentItem.id, 
             answer, 
             isCorrect,
-            type: currentItem.type 
+            type: currentItem.type,
+            audioReplays: playCount // Store audio replays for this question
         }]);
         
         setFeedback(isCorrect ? 'correct' : 'incorrect');
@@ -284,12 +287,14 @@ export default function WordRecognitionTest({ onComplete }) {
             if (currentIndex < TEST_ITEMS.length - 1) {
                 setCurrentIndex(prev => prev + 1);
                 setHasPlayed(false);
+                setPlayCount(0); // Reset play count for next question
             } else {
                 const allAnswers = [...answers, { 
                     questionId: currentItem.id, 
                     answer, 
                     isCorrect,
-                    type: currentItem.type 
+                    type: currentItem.type,
+                    audioReplays: playCount
                 }];
                 const correctCount = allAnswers.filter(a => a.isCorrect).length;
                 const score = Math.round((correctCount / TEST_ITEMS.length) * 100);
@@ -299,9 +304,16 @@ export default function WordRecognitionTest({ onComplete }) {
                 const noiseAnswers = allAnswers.filter(a => a.type === 'noise');
                 const competingAnswers = allAnswers.filter(a => a.type === 'competing');
                 
+                // Calculate total audio replays
+                const totalAudioReplays = allAnswers.reduce((sum, a) => sum + (a.audioReplays || 0), 0);
+                
                 onComplete({ 
                     score, 
                     answers: allAnswers,
+                    accuracy: correctCount / TEST_ITEMS.length,
+                    audioReplays: totalAudioReplays,
+                    wordsCorrect: correctCount,
+                    wordsTotal: TEST_ITEMS.length,
                     subscores: {
                         quiet: Math.round((quietAnswers.filter(a => a.isCorrect).length / quietAnswers.length) * 100),
                         noise: Math.round((noiseAnswers.filter(a => a.isCorrect).length / noiseAnswers.length) * 100),

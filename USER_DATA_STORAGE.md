@@ -31,7 +31,7 @@ import {
   recordResponse,
   recordTaskCompletion,
   recordFocusData,
-  recordReadingData,
+  recordMemoryData,
   recordVisualData,
   recordAuditoryData,
   calculateRiskScores
@@ -49,12 +49,20 @@ recordTaskCompletion({
   accuracy: 0.85
 });
 
-// Example: Record reading performance
-recordReadingData({
-  wordsRead: 120,
-  timeSeconds: 60,
-  accuracy: 0.92,
-  reversals: 2
+// Example: Record memory task
+recordMemoryData({
+  sequenceLength: 5
+});
+
+// Example: Record visual processing
+recordVisualData({
+  searchTime: 2500 // milliseconds
+});
+
+// Example: Record auditory processing
+recordAuditoryData({
+  accuracy: 0.88,
+  replays: 1
 });
 
 // At the end of assessment, calculate risk scores

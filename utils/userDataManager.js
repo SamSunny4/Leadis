@@ -52,33 +52,24 @@ export const initializeUserData = () => {
       },
       attentionMetrics: {
         mean_focus_duration_sec: null,
-        attention_dropoff_slope: null,
         attention_span_average: null,
         random_interaction_rate: null
       },
       memoryMetrics: {
-        max_sequence_length: null,
-        sequence_order_error_rate: null
+        max_sequence_length: null
       },
       visualProcessing: {
-        visual_search_time_ms: null,
-        left_right_confusion_rate: null,
-        pref_visual: null
+        visual_search_time_ms: null
       },
       auditoryProcessing: {
         auditory_processing_accuracy: null,
         average_audio_replays: 0,
         pref_auditory: null
       },
-      speechMetrics: {
-        speech_rate_wpm: null,
-        hesitation_frequency: 0
-      },
-      readingMetrics: {
-        reading_speed_wpm: null,
-        reading_accuracy: null,
-        letter_reversal_rate: null,
-        audio_text_mismatch_rate: null
+      motorCoordination: {
+        hand_laterality_accuracy: null,
+        finger_counting_accuracy: null,
+        hand_position_accuracy: null
       }
     },
     riskAssessment: {
@@ -86,7 +77,6 @@ export const initializeUserData = () => {
       risk_writing: null,
       risk_attention: null,
       risk_working_memory: null,
-      risk_expressive_language: null,
       risk_receptive_language: null,
       risk_visual_processing: null,
       risk_motor_coordination: null
@@ -280,19 +270,11 @@ export const updateAssessmentMetrics = (metrics) => {
     };
   }
   
-  // Update speech metrics
-  if (metrics.speechMetrics) {
-    userData.assessmentMetrics.speechMetrics = {
-      ...userData.assessmentMetrics.speechMetrics,
-      ...metrics.speechMetrics
-    };
-  }
-  
-  // Update reading metrics
-  if (metrics.readingMetrics) {
-    userData.assessmentMetrics.readingMetrics = {
-      ...userData.assessmentMetrics.readingMetrics,
-      ...metrics.readingMetrics
+  // Update motor coordination
+  if (metrics.motorCoordination) {
+    userData.assessmentMetrics.motorCoordination = {
+      ...userData.assessmentMetrics.motorCoordination,
+      ...metrics.motorCoordination
     };
   }
   
