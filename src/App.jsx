@@ -15,7 +15,11 @@ import {
   BookOpen,
   Gamepad2,
   BarChart3,
-  MessageCircle
+  MessageCircle,
+  Target,
+  Eye,
+  Lightbulb,
+  Lock
 } from 'lucide-react';
 
 // Awareness facts and quotes that fade in/out
@@ -336,6 +340,168 @@ const AwarenessBanner = () => {
   );
 };
 
+// About Section
+const AboutSection = () => {
+  const values = [
+    {
+      icon: <Target size={28} color="#6366f1" />,
+      title: "Our Mission",
+      description:
+        "To make early developmental screening accessible to every family—regardless of location or resources—so no child's potential goes unrecognised."
+    },
+    {
+      icon: <Eye size={28} color="#6366f1" />,
+      title: "Our Vision",
+      description:
+        "A world where every child receives timely, personalised support before learning differences become barriers to growth and confidence."
+    },
+    {
+      icon: <Lightbulb size={28} color="#6366f1" />,
+      title: "Our Approach",
+      description:
+        "We combine AI-driven behavioral analysis with gamified, child-friendly assessments to evaluate language, attention, memory, and motor development in a single 15-20 minute session."
+    },
+    {
+      icon: <Lock size={28} color="#6366f1" />,
+      title: "Our Commitment",
+      description:
+        "Leadis is built on transparency and ethics. We provide risk profiles—not diagnoses—and protect every child's data with strict privacy standards."
+    }
+  ];
+
+  const techPillars = [
+    { label: "Multimodal AI", detail: "Combines visual, auditory, and motor signals for richer insight" },
+    { label: "Adaptive Screening", detail: "Assessment paths automatically adjust to each child's age" },
+    { label: "Pose Estimation", detail: "Camera-based motor assessment via MediaPipe pose tracking" },
+    { label: "Speech Analysis", detail: "NLP evaluation of vocabulary, fluency, and pronunciation" },
+    { label: "Dyslexia Detection", detail: "Reading-material upload and interaction pattern analysis" },
+    { label: "Explainable Reports", detail: "Parent-friendly summaries highlighting strengths and next steps" }
+  ];
+
+  return (
+    <section id="about" style={styles.aboutSection}>
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        style={styles.sectionHeader}
+      >
+        <span style={styles.sectionLabel}>ABOUT LEADIS</span>
+        <h2 style={styles.sectionTitle}>Built to Empower Every Child</h2>
+        <p style={styles.sectionSubtitle}>
+          Leadis is an AI-powered early developmental screening platform developed to help families and
+          educators identify learning differences early—when support makes the greatest difference.
+        </p>
+      </motion.div>
+
+      {/* Mission / Vision / Approach / Commitment cards */}
+      <div style={styles.aboutValuesGrid}>
+        {values.map((item, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: index * 0.12 }}
+            whileHover={{ y: -5 }}
+            style={styles.aboutValueCard}
+          >
+            <div style={styles.featureIcon}>{item.icon}</div>
+            <h3 style={styles.featureTitle}>{item.title}</h3>
+            <p style={styles.featureDescription}>{item.description}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Background / Story strip */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        style={styles.aboutStory}
+      >
+        <div style={styles.aboutStoryText}>
+          <span style={styles.sectionLabel}>THE RESEARCH BEHIND LEADIS</span>
+          <h3 style={styles.aboutStoryTitle}>
+            From Research to Real-World Impact
+          </h3>
+          <p style={styles.aboutStoryBody}>
+            Early identification of learning and developmental difficulties is essential for timely
+            intervention, yet most existing tools are clinic-based, time-consuming, and limited to a
+            single modality. Leadis was conceived to close that gap.
+          </p>
+          <p style={styles.aboutStoryBody}>
+            Drawing on peer-reviewed literature in developmental psychology and machine learning, our
+            platform evaluates multiple developmental domains—language, attention, memory, motor
+            coordination, visual processing, and sensory learning preferences—through adaptive
+            interaction and passive behavioral monitoring, all within a single at-home session.
+          </p>
+          <p style={styles.aboutStoryBody}>
+            All collected data passes through a feature-extraction layer and is mapped to structured
+            developmental domains using rule-based and probabilistic scoring models, producing an
+            interpretable risk profile with no diagnostic labels.
+          </p>
+        </div>
+        <div style={styles.aboutStoryStats}>
+          <div style={styles.aboutStatCard}>
+            <span style={styles.aboutStatNumber}>6+</span>
+            <span style={styles.aboutStatLabel}>Developmental domains assessed</span>
+          </div>
+          <div style={styles.aboutStatCard}>
+            <span style={styles.aboutStatNumber}>15–20</span>
+            <span style={styles.aboutStatLabel}>Minutes per full screening session</span>
+          </div>
+          <div style={styles.aboutStatCard}>
+            <span style={styles.aboutStatNumber}>100%</span>
+            <span style={styles.aboutStatLabel}>Free — no registration required</span>
+          </div>
+          <div style={styles.aboutStatCard}>
+            <span style={styles.aboutStatNumber}>0</span>
+            <span style={styles.aboutStatLabel}>Diagnostic labels — risk profiles only</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Technology pillars */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        style={styles.sectionHeader}
+      >
+        <span style={styles.sectionLabel}>TECHNOLOGY</span>
+        <h3 style={styles.sectionTitle}>How the Science Works</h3>
+        <p style={styles.sectionSubtitle}>
+          Six integrated capabilities combine to produce a holistic developmental picture.
+        </p>
+      </motion.div>
+
+      <div style={styles.aboutTechGrid}>
+        {techPillars.map((pillar, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: index * 0.08 }}
+            style={styles.aboutTechPill}
+          >
+            <Check size={16} color="#6366f1" style={{ flexShrink: 0 }} />
+            <div>
+              <p style={styles.aboutTechLabel}>{pillar.label}</p>
+              <p style={styles.aboutTechDetail}>{pillar.detail}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
 // What We Screen Section
 const ScreeningAreas = () => {
   const areas = [
@@ -348,7 +514,7 @@ const ScreeningAreas = () => {
   ];
 
   return (
-    <section id="about" style={styles.screeningAreas}>
+    <section style={styles.screeningAreas}>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -467,6 +633,7 @@ const App = () => {
       <HowItWorksSection />
       <FeaturesSection />
       <AwarenessBanner />
+      <AboutSection />
       <ScreeningAreas />
       <CTASection />
       <Footer />
@@ -813,6 +980,110 @@ const styles = {
   statLabel: {
     fontSize: '14px',
     color: 'rgba(255, 255, 255, 0.8)',
+  },
+
+  // About Section
+  aboutSection: {
+    padding: '120px 80px',
+    backgroundColor: '#f8fafc',
+  },
+  aboutValuesGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '28px',
+    maxWidth: '1200px',
+    margin: '0 auto 80px',
+  },
+  aboutValueCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: '16px',
+    padding: '32px 24px',
+    boxShadow: '0 2px 20px rgba(0, 0, 0, 0.04)',
+    border: '1px solid rgba(0, 0, 0, 0.05)',
+    transition: 'all 0.3s',
+    cursor: 'default',
+  },
+  aboutStory: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '64px',
+    alignItems: 'start',
+    maxWidth: '1200px',
+    margin: '0 auto 96px',
+    backgroundColor: '#ffffff',
+    borderRadius: '24px',
+    padding: '64px',
+    boxShadow: '0 2px 30px rgba(0, 0, 0, 0.04)',
+    border: '1px solid rgba(0, 0, 0, 0.05)',
+  },
+  aboutStoryText: {},
+  aboutStoryTitle: {
+    fontSize: '32px',
+    fontWeight: 700,
+    color: '#1a1a2e',
+    marginBottom: '20px',
+    marginTop: '12px',
+    fontFamily: "'Playfair Display', serif",
+    lineHeight: 1.2,
+  },
+  aboutStoryBody: {
+    fontSize: '15px',
+    color: '#64748b',
+    lineHeight: 1.75,
+    marginBottom: '16px',
+  },
+  aboutStoryStats: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '24px',
+  },
+  aboutStatCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    backgroundColor: '#f8fafc',
+    borderRadius: '16px',
+    padding: '28px 24px',
+    border: '1px solid rgba(0, 0, 0, 0.05)',
+  },
+  aboutStatNumber: {
+    fontSize: '40px',
+    fontWeight: 700,
+    color: '#6366f1',
+    fontFamily: "'Playfair Display', serif",
+  },
+  aboutStatLabel: {
+    fontSize: '13px',
+    color: '#64748b',
+    lineHeight: 1.4,
+  },
+  aboutTechGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '20px',
+    maxWidth: '1000px',
+    margin: '0 auto',
+  },
+  aboutTechPill: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '14px',
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
+    padding: '20px 24px',
+    border: '1px solid rgba(0, 0, 0, 0.05)',
+    boxShadow: '0 1px 10px rgba(0, 0, 0, 0.03)',
+  },
+  aboutTechLabel: {
+    fontSize: '15px',
+    fontWeight: 600,
+    color: '#1a1a2e',
+    marginBottom: '4px',
+  },
+  aboutTechDetail: {
+    fontSize: '13px',
+    color: '#64748b',
+    lineHeight: 1.5,
   },
 
   // Screening Areas
